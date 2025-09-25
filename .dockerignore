@@ -6,6 +6,9 @@
 **/.vscode
 **/node_modules
 
+!librechat.yaml
+
+
 # Specific patterns to ignore
 data-node
 meili_data*
