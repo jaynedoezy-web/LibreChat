@@ -49,9 +49,9 @@ registration:
 # ===== Web Search (DISABLED) =====
 # You’re using Meilisearch for in-app message search.
 # If you still want web search, uncomment and add keys.
- webSearch:
-   braveApiKey: '${BRAVE_API_KEY}'
-   braveGuardianSearchUrl: '${BRAVE_GUARDIAN_SEARCH_URL}'
+webSearch:
+  braveApiKey: '${BRAVE_API_KEY}'
+  braveGuardianSearchUrl: '${BRAVE_GUARDIAN_SEARCH_URL}'
 
 # ===== Actions: pre-allow domains we’ll use for tools =====
 actions:
