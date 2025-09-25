@@ -46,26 +46,6 @@ registration:
 # balance: ...
 # transactions: ...
 
-# ===== Web Search (DISABLED) =====
-# You’re using Meilisearch for in-app message search.
-# If you still want web search, uncomment and add keys.
-# ===== Database Configuration =====
-mongo:
-  uri: '${MONGO_URI}'
-  dbName: 'librechat'
-
-# ===== Meilisearch Configuration =====
-meilisearch:
-  host: '${MEILI_HOST}'
-  apiKey: '${MEILI_API_KEY}'
-
-# ===== Web Search (Optional) =====
-# You’re using Meilisearch for indexing.
-# If you still want web search, set your Brave API keys below.
-webSearch:
-braveApiKey: '${BRAVE_API_KEY}'
-braveGuardianSearchUrl: '${BRAVE_GUARDIAN_SEARCH_URL}'
-
 # ===== Actions: pre-allow domains we’ll use for tools =====
 actions:
   allowedDomains:
@@ -83,18 +63,13 @@ actions:
 # ===== Endpoints =====
 endpoints:
 
-  # ---- Default/assistants/agents sections omitted for brevity; enable later if needed ----
-  # assistants:
-  # agents:
-
   custom:
 
     # ---------- Google (Gemini) via Google AI Studio ----------
     - name: 'Google'
-      apiKey: '${GOOGLE_KEY}'           # Use your dedicated Google Generative Language API key
+      apiKey: '${GOOGLE_KEY}'
       baseURL: 'https://generativelanguage.googleapis.com'
       models:
-        # Only the models you requested will be shown in the UI
         default:
           [
             'google/gemini-2.5-flash',
@@ -111,8 +86,6 @@ endpoints:
       modelDisplayLabel: 'Google (Gemini)'
 
     # ---------- OpenAI ----------
-    # NOTE: These model IDs must exist on your OpenAI account/region.
-    # If any aren’t available yet, they’ll simply fail to start; keep fetch=false.
     - name: 'OpenAI'
       apiKey: '${OPENAI_API_KEY}'
       baseURL: 'https://api.openai.com/v1'
@@ -130,11 +103,8 @@ endpoints:
       titleConvo: true
       titleModel: 'gpt-4.1'
       modelDisplayLabel: 'OpenAI'
-      # For some OpenAI models, images/tools may need specific params; add later in addParams if needed.
-      # addParams: { }
 
     # ---------- OpenRouter (curated; NO Grok/xAI/Google) ----------
-    # We disable fetch and explicitly allow only safe families (no grok, xai, google).
     - name: 'OpenRouter'
       apiKey: '${OPENROUTER_API_KEY}'
       baseURL: 'https://openrouter.ai/api/v1'
@@ -143,7 +113,6 @@ endpoints:
       models:
         default:
           [
-            # Keep to community/open families you like; exclude Grok/xAI/Google.
             'openai/gpt-4o-mini',
             'meta-llama/llama-3.1-70b-instruct',
             'meta-llama/llama-3.1-8b-instruct',
@@ -151,54 +120,10 @@ endpoints:
             'mistralai/mixtral-8x7b-instruct',
             'nousresearch/hermes-3-llama-3.1-70b',
             'qwen/qwen2.5-72b-instruct',
-            'perplexity/llama-3.1-sonar-small-128k-online'   # if you want retrieval; remove if not
+            'perplexity/llama-3.1-sonar-small-128k-online'
           ]
-        fetch: false            # don’t import the full catalog (prevents Grok/xAI/Google from appearing)
-      dropParams: ['stop']      # OpenRouter models vary on stop tokens
+        fetch: false
+      dropParams: ['stop']
       titleConvo: true
       titleModel: 'meta-llama/llama-3.1-70b-instruct'
       modelDisplayLabel: 'OpenRouter'
-
-# ===== Files / Storage (optional granular strategies) =====
-# fileStrategy:
-#   avatar: "local"
-#   image: "local"
-#   document: "local"
-
-# ===== Memory (user personalization) – can enable later =====
-# memory:
-#   disabled: false
-#   personalize: true
-#   validKeys: ["preferences", "work_info", "personal_info", "skills", "interests", "context"]
-
-# ===== MCP servers (optional) – add after deploy if you plan to use them =====
-# mcpServers: ...
-# ===== Google Configuration =====
-google:
-  apiKey: '${GOOGLE_API_KEY}'
-  geminiApiKey: '${GOOGLE_GEMINI_API_KEY}'
-  clientId: '${GOOGLE_CLIENT_ID}'
-  clientSecret: '${GOOGLE_CLIENT_SECRET}'
-
-# ===== Authentication =====
-auth:
-  secret: '${AUTH_SECRET}'
-  allowEmailLogin: '${ALLOW_EMAIL_LOGIN}'
-  allowRegistration: '${ALLOW_REGISTRATION}'
-  allowSocialLogin: '${ALLOW_SOCIAL_LOGIN}'
-
-# ===== OpenAI Provider =====
-openai:
-  apiKey: '${OPENAI_API_KEY}'
-
-# ===== Other Providers (Optional) =====
-# Add more (Anthropic, OpenRouter, etc.) following the same pattern:
-# anthropic:
-#   apiKey: '${ANTHROPIC_API_KEY}'
-# openrouter:
-#   apiKey: '${OPENROUTER_API_KEY}'
-
-# ===== Optional Features =====
-features:
-  enableRagApi: true
-  enablePushover: false
