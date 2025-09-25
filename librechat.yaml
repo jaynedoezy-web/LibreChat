@@ -131,9 +131,9 @@ endpoints:
 # ===== Integrations =====
 
 # RAG API integration
-#ragApi:
-#  url: '${RAG_API_URL}'   # e.g. http://rag:8000 or a Railway service URL
-#  enabled: true
+ragApi:
+  url: '${RAG_API_URL}'   # e.g. http://rag:8000 or a Railway service URL
+  enabled: true
 
 # Pushover integration
 #pushover:
