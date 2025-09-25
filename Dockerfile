@@ -1,5 +1,5 @@
 # Use the latest stable LibreChat image
-FROM ghcr.io/danny-avila/librechat:0.8.3
+FROM ghcr.io/danny-avila/librechat:latest
 
 # Copy your custom config into the container
 COPY librechat.yaml /app/librechat.yaml
