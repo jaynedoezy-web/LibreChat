@@ -80,7 +80,7 @@ endpoints:
             'google/gemini-2.5-flash-image-preview',
             'google/gemma-3-27b-it:free'
           ]
-        fetch: false
+        fetch: true
       titleConvo: true
       titleModel: 'google/gemini-2.5-flash'
       modelDisplayLabel: 'Google (Gemini)'
@@ -99,7 +99,7 @@ endpoints:
             'openai/gpt-oss-120b',
             'openai/gpt-oss-20b'
           ]
-        fetch: false
+        fetch: true
       titleConvo: true
       titleModel: 'gpt-4.1'
       modelDisplayLabel: 'OpenAI'
@@ -122,7 +122,7 @@ endpoints:
             'qwen/qwen2.5-72b-instruct',
             'perplexity/llama-3.1-sonar-small-128k-online'
           ]
-        fetch: false
+        fetch: true
       dropParams: ['stop']
       titleConvo: true
       titleModel: 'meta-llama/llama-3.1-70b-instruct'
