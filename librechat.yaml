@@ -5,41 +5,47 @@ cache: true
 interface:
   # MCP Servers UI configuration
   mcpServers:
-   zapier_gmail:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "Google Mail"
-   zapier_gdrive:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "Google Drive"
-   zapier_gcalendar:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "Google Calendar"
-   zapier_gtask:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "Google Tasks"
-   zapier_pushover:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "Pushover"
-   zapier_github:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "GitHub"
-   zapier_notion:
-     type: "streamable-http"
-     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-     timeout: 60000
-     title: "Notion"
+zapier_gmail:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: Google Mail
+
+zapier_gdrive:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: Google Drive
+
+zapier_gcalendar:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: Google Calendar
+
+zapier_gtask:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: Google Tasks
+
+zapier_pushover:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: Pushover
+
+zapier_github:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: GitHub
+
+zapier_notion:
+  type: streamable-http
+  url: https://mcp.zapier.com/api/mcp/s/.../mcp
+  timeout: 60000
+  title: Notion
     
 vectorDb:
   provider: "meilisearch"
