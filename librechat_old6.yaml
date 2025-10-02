@@ -1,0 +1,145 @@
+version: 1.2.8
+cache: true
+
+# ========================
+# Endpoints (including MCP references)
+# ========================
+endpoints:
+  custom:
+    - name: "zapier_gmail"
+      type: "mcp"
+      provider: "zapier_gmail"
+    - name: "zapier_gdrive"
+      type: "mcp"
+      provider: "zapier_gdrive"
+    - name: "zapier_gcalendar"
+      type: "mcp"
+      provider: "zapier_gcalendar"
+    - name: "zapier_gtask"
+      type: "mcp"
+      provider: "zapier_gtask"
+    - name: "zapier_gsheets"
+      type: "mcp"
+      provider: "zapier_gsheets"
+    - name: "zapier_pushover"
+      type: "mcp"
+      provider: "zapier_pushover"
+    - name: "zapier_github"
+      type: "mcp"
+      provider: "zapier_github"
+    - name: "zapier_notion"
+      type: "mcp"
+      provider: "zapier_notion"
+
+    - name: "OpenRouter"
+      apiKey: "${OPENROUTER_KEY}"
+      baseURL: "https://openrouter.ai/api/v1"
+      models:
+        default: ["openai/gpt-3.5-turbo"]
+        fetch: true
+      titleConvo: true
+      titleModel: "gpt-3.5-turbo"
+      summarize: false
+      summaryModel: "gpt-3.5-turbo"
+      forcePrompt: false
+      dropParams: ["stop"]
+      modelDisplayLabel: "OpenRouter"
+
+    - name: "Perplexity"
+      apiKey: "${PERPLEXITY_API_KEY}"
+      baseURL: "https://api.perplexity.ai/"
+      models:
+        default: [
+          "mistral-7b-instruct",
+          "sonar-small-chat",
+          "sonar-medium-chat"
+        ]
+        fetch: false
+      titleConvo: true
+      titleModel: "sonar-medium-chat"
+      summarize: false
+      summaryModel: "sonar-medium-chat"
+      forcePrompt: false
+      dropParams: ["stop", "frequency_penalty"]
+      modelDisplayLabel: "Perplexity"
+
+# ========================
+# Web Search
+# ========================
+webSearch:
+  searchProvider: "serper"   # valid: serper or searxng
+  maxResults: 10
+  safeSearch: 0              # 0=off, 1=moderate, 2=strict
+  enable: true
+
+# ========================
+# Balance
+# ========================
+balance:
+  check: true
+
+# ========================
+# Interface (MCP + Assistants + Features)
+# ========================
+interface:
+  mcpServers:
+    zapier_gmail:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/YzU3MDFlMTEtZWY5NS00YmRlLWJmNWEtNTIwYTcxM2JkZTQwOjkyNzY1MmNlLTgwZjItNGY3YS1iODIwLTc5MDFlM2I5ZGNjNQ==/mcp"
+      timeout: 60000
+      title: "Google Mail"
+    zapier_gdrive:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/ZDdmMjBjYzItODEwYi00OWNmLTkxNWQtYjNiOWVlNzM3YzA1OjczZmU2MDIwLTMyMzctNDQxYi1iN2QwLWY5MmM1OTZkYTNlNg==/mcp"
+      timeout: 60000
+      title: "Google Drive"
+    zapier_gcalendar:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/YjgwNGQ3NDQtYmY3Zi00ODlhLTkwN2QtMDAzMDhhYTRkMGJiOjhjNjMyYWEyLTEyNzgtNGY1Ny05N2MwLTEyMDM5ZWFlYzEwNg==/mcp"
+      timeout: 60000
+      title: "Google Calendar"
+    zapier_gtask:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/NmEyZGQ5NTItYTIzMC00YzI5LTk2MzYtMDU0YzliMjNmN2U1OmE2MmNiOGIxLTBmYWUtNDRkOS1iNTI1LTYyOTY0NDk0OGMyMQ==/mcp"
+      timeout: 60000
+      title: "Google Tasks"
+    zapier_gsheets:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/YjVjNzMxNGQtZDU0NC00MTQ2LTg4MGMtMTRkMWU2ZWRjMWFiOjFiMjUyNGE3LWJlNmItNDQ5ZS1hYWVkLTZiNTEwNzIzYWM4YQ==/mcp"
+      timeout: 60000
+      title: "Google Sheets"
+    zapier_pushover:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/YzZkYThiY2ItMGM2MS00MjNiLTkwZWQtYjY0OWQyNjNhYzdiOjhkNDVmNTZkLTBmMjMtNGVmZC05ODdlLTY2Y2I5YWIwMGM1OA==/mcp"
+      timeout: 60000
+      title: "Pushover"
+    zapier_github:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/N2I1YjM1OTAtYWM1YS00OTUzLWJkMDItY2FjODQyZGU0ODBkOjRkZjliYzljLWRiY2YtNGUwMy04YmExLTJkMDE1NWU1OGE3MQ==/mcp"
+      timeout: 60000
+      title: "GitHub"
+    zapier_notion:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/OTU3YzViYmMtZDNhMS00NTFmLTk1MTUtOGMwOWY0YzdkNGU1OmQ0OGU0MTZkLTA5YmEtNDQ2Yy05ZDY2LTE4NDlkZmYyZDJmNw==/mcp"
+      timeout: 60000
+      title: "Notion"
+
+  assistants:
+    disableBuilder: false
+    pollIntervalMs: 750
+    timeoutMs: 180000
+    supportedIds: ["asst_supportedAssistantId1"]
+    capabilities: ["code_interpreter", "retrieval", "actions", "tools", "image_vision"]
+    retrievalModels: ["gpt-4-turbo-preview"]
+
+  webSearch: true
+  modelSelect: true
+  parameters: true
+  presets: true
+  sidePanel: true
+  prompts: true
+  bookmarks: true
+  multiConvo: true
+  agents: true
+  fileSearch: true
+  temporaryChatRetention: 4380

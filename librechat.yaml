@@ -1,145 +1,237 @@
+# LibreChat Universal RAG Configuration
+# Place this file in the root of your LibreChat directory
 version: 1.2.8
+
+# ============================================
+# UNIVERSAL RAG CONFIGURATION
+# All models share the same RAG knowledge base
+# ============================================
+
+# Cache settings for better performance
 cache: true
 
-# ========================
-# Endpoints (including MCP references)
-# ========================
+# Registration and user settings
+registration:
+  socialLogins: ['google']
+  
+# File upload configuration for RAG
+fileConfig:
+  endpoints:
+    assistants:
+      fileLimit: 10
+      fileSizeLimit: 50  # MB
+      totalSizeLimit: 500  # MB
+      supportedMimeTypes:
+        - "application/pdf"
+        - "text/plain"
+        - "text/markdown"
+        - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        - "text/csv"
+    openAI:
+      disabled: false
+      fileLimit: 10
+      fileSizeLimit: 50
+      totalSizeLimit: 500
+      supportedMimeTypes:
+        - "application/pdf"
+        - "text/plain"
+        - "text/markdown"
+        - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    default:
+      totalSizeLimit: 500
+    
+  # Server-wide file settings
+  serverFileSizeLimit: 100
+  avatarSizeLimit: 2
+
+# ============================================
+# RAG API CONFIGURATION (Universal Connector)
+# ============================================
+rateLimits:
+  fileUploads:
+    ipMax: 100
+    ipWindowInMinutes: 60
+    userMax: 50
+    userWindowInMinutes: 60
+
+# ============================================
+# MODEL ENDPOINTS - ALL USE UNIVERSAL RAG
+# ============================================
+
 endpoints:
+  # OpenAI Configuration
   custom:
-    - name: "zapier_gmail"
-      type: "mcp"
-      provider: "zapier_gmail"
-    - name: "zapier_gdrive"
-      type: "mcp"
-      provider: "zapier_gdrive"
-    - name: "zapier_gcalendar"
-      type: "mcp"
-      provider: "zapier_gcalendar"
-    - name: "zapier_gtask"
-      type: "mcp"
-      provider: "zapier_gtask"
-    - name: "zapier_gsheets"
-      type: "mcp"
-      provider: "zapier_gsheets"
-    - name: "zapier_pushover"
-      type: "mcp"
-      provider: "zapier_pushover"
-    - name: "zapier_github"
-      type: "mcp"
-      provider: "zapier_github"
-    - name: "zapier_notion"
-      type: "mcp"
-      provider: "zapier_notion"
-
-    - name: "OpenRouter"
-      apiKey: "${OPENROUTER_KEY}"
-      baseURL: "https://openrouter.ai/api/v1"
+    - name: "OpenAI"
+      apiKey: "${OPENAI_API_KEY}"
+      baseURL: "https://api.openai.com/v1"
       models:
-        default: ["openai/gpt-3.5-turbo"]
-        fetch: true
-      titleConvo: true
-      titleModel: "gpt-3.5-turbo"
-      summarize: false
-      summaryModel: "gpt-3.5-turbo"
-      forcePrompt: false
-      dropParams: ["stop"]
-      modelDisplayLabel: "OpenRouter"
-
-    - name: "Perplexity"
-      apiKey: "${PERPLEXITY_API_KEY}"
-      baseURL: "https://api.perplexity.ai/"
-      models:
-        default: [
-          "mistral-7b-instruct",
-          "sonar-small-chat",
-          "sonar-medium-chat"
-        ]
+        default: 
+          - "gpt-5" 
+          - "gpt-5-mini"
+          - "gpt-5-nano"
+          - "gpt-4"
+          - "gpt-4o"
         fetch: false
       titleConvo: true
-      titleModel: "sonar-medium-chat"
+      titleModel: "gpt-5-nano"
       summarize: false
-      summaryModel: "sonar-medium-chat"
+      summaryModel: "gpt-5-nano"
       forcePrompt: false
-      dropParams: ["stop", "frequency_penalty"]
-      modelDisplayLabel: "Perplexity"
+      modelDisplayLabel: "OpenAI"
+      # UNIVERSAL RAG ENABLED
+      fileConfig:
+        disabled: false
+        fileLimit: 10
+        fileSizeLimit: 50
+        totalSizeLimit: 500
+        supportedMimeTypes:
+          - "application/pdf"
+          - "text/plain"
+          - "text/markdown"
+          - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          - "text/csv"
+      # RAG uses vector store
+      dropParams: ["user"]      
 
-# ========================
-# Web Search
-# ========================
-webSearch:
-  searchProvider: "serper"   # valid: serper or searxng
-  maxResults: 10
-  safeSearch: 0              # 0=off, 1=moderate, 2=strict
-  enable: true
+    # Google (Gemini) Configuration
+    - name: "Google"
+      apiKey: "${GOOGLE_API_KEY}"
+      baseURL: "https://generativelanguage.googleapis.com/v1beta"
+      models:
+        default:
+          - "gemini-2.5-pro-latest"
+          - "gemini-2.5-flash-latest"
+        fetch: false
+      titleConvo: true
+      titleModel: "gemini-2.5-pro-latest"
+      summarize: false
+      summaryModel: "gemini-2.5-pro-latest"
+      forcePrompt: false
+      modelDisplayLabel: "Google"
+      # UNIVERSAL RAG ENABLED
+      fileConfig:
+        disabled: false
+        fileLimit: 10
+        fileSizeLimit: 50
+        totalSizeLimit: 500
+        supportedMimeTypes:
+          - "application/pdf"
+          - "text/plain"
+          - "text/markdown"
+          - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          - "text/csv"
 
-# ========================
-# Balance
-# ========================
-balance:
-  check: true
+    # OpenRouter (Free models) Configuration
+    - name: "OpenRouter"
+      apiKey: "${OPENROUTER_API_KEY}"
+      baseURL: "https://openrouter.ai/api/v1"
+      models:
+        default:
+          - "deepseek/deepseek-r1-0528:free"
+          - "deepseek/deepseek-r1-distill-llama-70b:free"
+          - "meta-llama/llama-3.3-8b-instruct:free"
+          - "meta-llama/llama-4-maverick:free"
+          - "mistralai/devstral-small-2505:free"
+          - "mistralai/mistral-small-3.2-24b-instruct:free"
+          - "moonshotai/kimi-vl-a3b-thinking:free"
+          - "openai/gpt-oss-120b:free"
+          - "qwen/qwen-2.5-coder-32b-instruct:free"
+          - "qwen/qwen2.5-vl-32b-instruct:free"
+          - "qwen/qwen2.5-vl-72b-instruct:free"
+          - "qwen/qwen3-14b:free"
+          - "qwen/qwen3-8b:free"
+          - "qwen/qwen3-coder:free"
+        fetch: false
+      modelDisplayLabel: "OpenRouter (Curated)"
+      titleModel: "openai/gpt-oss-120b:free"
+      summaryModel: "openai/gpt-oss-120b:free"
 
-# ========================
-# Interface (MCP + Assistants + Features)
-# ========================
+    # OpenRouter All Models - FIXED: Added required default array
+    - name: "OpenRouter All"
+      apiKey: "${OPENROUTER_API_KEY}"
+      baseURL: "https://openrouter.ai/api/v1"
+      models:
+        default: []  # Empty array allows fetch to work
+        fetch: true  # Changed to true to actually fetch models
+      modelDisplayLabel: "OpenRouter (All Free Models)"
+
+# ============================================
+# RAG EMBEDDING CONFIGURATION
+# ============================================
+# Vector DB configuration is handled via environment variables in Railway:
+#
+# Required RAG API Environment Variables:
+# ---------------------------------------
+# RAG_API_URL=http://rag-api.railway.internal:8000
+# RAG_PORT=8000
+# OPENAI_API_KEY=<your-key>  # For embeddings
+# EMBEDDINGS_PROVIDER=openai
+# EMBEDDINGS_MODEL=text-embedding-3-small
+# 
+# Vector Database (PGVector) Configuration:
+# -----------------------------------------
+# VECTOR_DB_TYPE=pgvector
+# DB_HOST=<your-postgres-host>
+# DB_PORT=5432
+# DB_NAME=<database-name>
+# DB_USER=<username>
+# DB_PASSWORD=<password>
+# 
+# Or use connection string:
+# POSTGRES_URL=postgresql://user:pass@host:5432/dbname
+#
+# RAG Processing Parameters:
+# ---------------------------
+# RAG_CHUNK_SIZE=1500
+# RAG_CHUNK_OVERLAP=200
+# RAG_SIMILARITY_TOP_K=5
+# ============================================
+
+# --------------------------
+# MCP Servers Configuration
+# --------------------------
+mcpServers:
+  zapier_gmail:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "Google Mail"
+  zapier_gdrive:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "Google Drive"
+  zapier_gcalendar:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "Google Calendar"
+  zapier_gtask:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "Google Tasks"
+  zapier_pushover:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "Pushover"
+  zapier_github:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "GitHub"
+  zapier_notion:
+    type: "streamable-http"
+    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+    timeout: 60000
+    title: "Notion"
+
+# Interface customization
 interface:
-  mcpServers:
-    zapier_gmail:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/YzU3MDFlMTEtZWY5NS00YmRlLWJmNWEtNTIwYTcxM2JkZTQwOjkyNzY1MmNlLTgwZjItNGY3YS1iODIwLTc5MDFlM2I5ZGNjNQ==/mcp"
-      timeout: 60000
-      title: "Google Mail"
-    zapier_gdrive:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/ZDdmMjBjYzItODEwYi00OWNmLTkxNWQtYjNiOWVlNzM3YzA1OjczZmU2MDIwLTMyMzctNDQxYi1iN2QwLWY5MmM1OTZkYTNlNg==/mcp"
-      timeout: 60000
-      title: "Google Drive"
-    zapier_gcalendar:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/YjgwNGQ3NDQtYmY3Zi00ODlhLTkwN2QtMDAzMDhhYTRkMGJiOjhjNjMyYWEyLTEyNzgtNGY1Ny05N2MwLTEyMDM5ZWFlYzEwNg==/mcp"
-      timeout: 60000
-      title: "Google Calendar"
-    zapier_gtask:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/NmEyZGQ5NTItYTIzMC00YzI5LTk2MzYtMDU0YzliMjNmN2U1OmE2MmNiOGIxLTBmYWUtNDRkOS1iNTI1LTYyOTY0NDk0OGMyMQ==/mcp"
-      timeout: 60000
-      title: "Google Tasks"
-    zapier_gsheets:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/YjVjNzMxNGQtZDU0NC00MTQ2LTg4MGMtMTRkMWU2ZWRjMWFiOjFiMjUyNGE3LWJlNmItNDQ5ZS1hYWVkLTZiNTEwNzIzYWM4YQ==/mcp"
-      timeout: 60000
-      title: "Google Sheets"
-    zapier_pushover:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/YzZkYThiY2ItMGM2MS00MjNiLTkwZWQtYjY0OWQyNjNhYzdiOjhkNDVmNTZkLTBmMjMtNGVmZC05ODdlLTY2Y2I5YWIwMGM1OA==/mcp"
-      timeout: 60000
-      title: "Pushover"
-    zapier_github:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/N2I1YjM1OTAtYWM1YS00OTUzLWJkMDItY2FjODQyZGU0ODBkOjRkZjliYzljLWRiY2YtNGUwMy04YmExLTJkMDE1NWU1OGE3MQ==/mcp"
-      timeout: 60000
-      title: "GitHub"
-    zapier_notion:
-      type: "streamable-http"
-      url: "https://mcp.zapier.com/api/mcp/s/OTU3YzViYmMtZDNhMS00NTFmLTk1MTUtOGMwOWY0YzdkNGU1OmQ0OGU0MTZkLTA5YmEtNDQ2Yy05ZDY2LTE4NDlkZmYyZDJmNw==/mcp"
-      timeout: 60000
-      title: "Notion"
-
-  assistants:
-    disableBuilder: false
-    pollIntervalMs: 750
-    timeoutMs: 180000
-    supportedIds: ["asst_supportedAssistantId1"]
-    capabilities: ["code_interpreter", "retrieval", "actions", "tools", "image_vision"]
-    retrievalModels: ["gpt-4-turbo-preview"]
-
-  webSearch: true
-  modelSelect: true
-  parameters: true
-  presets: true
-  sidePanel: true
-  prompts: true
-  bookmarks: true
-  multiConvo: true
-  agents: true
-  fileSearch: true
-  temporaryChatRetention: 4380
+  privacyPolicy:
+    externalUrl: 'https://yourdomain.com/privacy'
+    openNewTab: true
+  termsOfService:
+    externalUrl: 'https://yourdomain.com/terms'
+    openNewTab: true
