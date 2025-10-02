@@ -1,237 +1,42 @@
-# LibreChat Universal RAG Configuration
-# Place this file in the root of your LibreChat directory
+# A minimal LibreChat configuration to demonstrate a working MCP (tool/action).
+# You MUST provide your own OPENROUTER_KEY as an environment variable for this to work.
+
 version: 1.2.8
-
-# ============================================
-# UNIVERSAL RAG CONFIGURATION
-# All models share the same RAG knowledge base
-# ============================================
-
-# Cache settings for better performance
 cache: true
 
-# Registration and user settings
-registration:
-  socialLogins: ['google']
-  
-# File upload configuration for RAG
-fileConfig:
-  endpoints:
-    assistants:
-      fileLimit: 10
-      fileSizeLimit: 50  # MB
-      totalSizeLimit: 500  # MB
-      supportedMimeTypes:
-        - "application/pdf"
-        - "text/plain"
-        - "text/markdown"
-        - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        - "text/csv"
-    openAI:
-      disabled: false
-      fileLimit: 10
-      fileSizeLimit: 50
-      totalSizeLimit: 500
-      supportedMimeTypes:
-        - "application/pdf"
-        - "text/plain"
-        - "text/markdown"
-        - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    default:
-      totalSizeLimit: 500
-    
-  # Server-wide file settings
-  serverFileSizeLimit: 100
-  avatarSizeLimit: 2
-
-# ============================================
-# RAG API CONFIGURATION (Universal Connector)
-# ============================================
-rateLimits:
-  fileUploads:
-    ipMax: 100
-    ipWindowInMinutes: 60
-    userMax: 50
-    userWindowInMinutes: 60
-
-# ============================================
-# MODEL ENDPOINTS - ALL USE UNIVERSAL RAG
-# ============================================
-
 endpoints:
-  # OpenAI Configuration
   custom:
-    - name: "OpenAI"
-      apiKey: "${OPENAI_API_KEY}"
-      baseURL: "https://api.openai.com/v1"
-      models:
-        default: 
-          - "gpt-5" 
-          - "gpt-5-mini"
-          - "gpt-5-nano"
-          - "gpt-4"
-          - "gpt-4o"
-        fetch: false
-      titleConvo: true
-      titleModel: "gpt-5-nano"
-      summarize: false
-      summaryModel: "gpt-5-nano"
-      forcePrompt: false
-      modelDisplayLabel: "OpenAI"
-      # UNIVERSAL RAG ENABLED
-      fileConfig:
-        disabled: false
-        fileLimit: 10
-        fileSizeLimit: 50
-        totalSizeLimit: 500
-        supportedMimeTypes:
-          - "application/pdf"
-          - "text/plain"
-          - "text/markdown"
-          - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          - "text/csv"
-      # RAG uses vector store
-      dropParams: ["user"]      
-
-    # Google (Gemini) Configuration
-    - name: "Google"
-      apiKey: "${GOOGLE_API_KEY}"
-      baseURL: "https://generativelanguage.googleapis.com/v1beta"
-      models:
-        default:
-          - "gemini-2.5-pro-latest"
-          - "gemini-2.5-flash-latest"
-        fetch: false
-      titleConvo: true
-      titleModel: "gemini-2.5-pro-latest"
-      summarize: false
-      summaryModel: "gemini-2.5-pro-latest"
-      forcePrompt: false
-      modelDisplayLabel: "Google"
-      # UNIVERSAL RAG ENABLED
-      fileConfig:
-        disabled: false
-        fileLimit: 10
-        fileSizeLimit: 50
-        totalSizeLimit: 500
-        supportedMimeTypes:
-          - "application/pdf"
-          - "text/plain"
-          - "text/markdown"
-          - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          - "text/csv"
-
-    # OpenRouter (Free models) Configuration
+    # 1. An "agent" model is required to use tools. We'll use OpenRouter for this.
+    # Make sure to select a powerful model like GPT-4o that is good at using tools.
     - name: "OpenRouter"
-      apiKey: "${OPENROUTER_API_KEY}"
+      apiKey: "${OPENROUTER_KEY}"
       baseURL: "https://openrouter.ai/api/v1"
       models:
-        default:
-          - "deepseek/deepseek-r1-0528:free"
-          - "deepseek/deepseek-r1-distill-llama-70b:free"
-          - "meta-llama/llama-3.3-8b-instruct:free"
-          - "meta-llama/llama-4-maverick:free"
-          - "mistralai/devstral-small-2505:free"
-          - "mistralai/mistral-small-3.2-24b-instruct:free"
-          - "moonshotai/kimi-vl-a3b-thinking:free"
-          - "openai/gpt-oss-120b:free"
-          - "qwen/qwen-2.5-coder-32b-instruct:free"
-          - "qwen/qwen2.5-vl-32b-instruct:free"
-          - "qwen/qwen2.5-vl-72b-instruct:free"
-          - "qwen/qwen3-14b:free"
-          - "qwen/qwen3-8b:free"
-          - "qwen/qwen3-coder:free"
-        fetch: false
-      modelDisplayLabel: "OpenRouter (Curated)"
-      titleModel: "openai/gpt-oss-120b:free"
-      summaryModel: "openai/gpt-oss-120b:free"
+        default: ["openai/gpt-4o", "google/gemini-pro"]
+        fetch: true
+      titleConvo: true
+      titleModel: "current_model"
+      modelDisplayLabel: "OpenRouter"
 
-    # OpenRouter All Models - FIXED: Added required default array
-    - name: "OpenRouter All"
-      apiKey: "${OPENROUTER_API_KEY}"
-      baseURL: "https://openrouter.ai/api/v1"
-      models:
-        default: []  # Empty array allows fetch to work
-        fetch: true  # Changed to true to actually fetch models
-      modelDisplayLabel: "OpenRouter (All Free Models)"
+    # 2. The MCP (tool) definition.
+    # This just tells LibreChat that a tool named "Petstore" exists.
+    - name: "Petstore"
+      type: "mcp"
+      provider: "petstore_provider" # This links to the mcpServers section below.
 
-# ============================================
-# RAG EMBEDDING CONFIGURATION
-# ============================================
-# Vector DB configuration is handled via environment variables in Railway:
-#
-# Required RAG API Environment Variables:
-# ---------------------------------------
-# RAG_API_URL=http://rag-api.railway.internal:8000
-# RAG_PORT=8000
-# OPENAI_API_KEY=<your-key>  # For embeddings
-# EMBEDDINGS_PROVIDER=openai
-# EMBEDDINGS_MODEL=text-embedding-3-small
-# 
-# Vector Database (PGVector) Configuration:
-# -----------------------------------------
-# VECTOR_DB_TYPE=pgvector
-# DB_HOST=<your-postgres-host>
-# DB_PORT=5432
-# DB_NAME=<database-name>
-# DB_USER=<username>
-# DB_PASSWORD=<password>
-# 
-# Or use connection string:
-# POSTGRES_URL=postgresql://user:pass@host:5432/dbname
-#
-# RAG Processing Parameters:
-# ---------------------------
-# RAG_CHUNK_SIZE=1500
-# RAG_CHUNK_OVERLAP=200
-# RAG_SIMILARITY_TOP_K=5
-# ============================================
-
-# --------------------------
-# MCP Servers Configuration
-# --------------------------
-mcpServers:
-  zapier_gmail:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Mail"
-  zapier_gdrive:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Drive"
-  zapier_gcalendar:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Calendar"
-  zapier_gtask:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Tasks"
-  zapier_pushover:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Pushover"
-  zapier_github:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "GitHub"
-  zapier_notion:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Notion"
-
-# Interface customization
 interface:
-  privacyPolicy:
-    externalUrl: 'https://yourdomain.com/privacy'
-    openNewTab: true
-  termsOfService:
-    externalUrl: 'https://yourdomain.com/terms'
-    openNewTab: true
+  # 3. The server configuration for the MCP provider defined above.
+  mcpServers:
+    # This key MUST match the 'provider' field from the endpoint definition.
+    petstore_provider:
+      type: "streamable-http"
+      # This URL points to the OpenAPI schema for the tool.
+      # The AI model uses this schema to understand what the tool can do.
+      url: "https://petstore.swagger.io/v2/swagger.json"
+      timeout: 60000
+      # This is the name you will see in the UI's "Actions" tab.
+      title: "Swagger Petstore"
+
+  # 4. Enable the UI features needed to see and use agents/tools.
+  agents: true
+  modelSelect: true
