@@ -17,3 +17,7 @@ mcpServers:
       - -y
       - "@modelcontextprotocol/server-puppeteer"
     serverInstructions: "Do not access any local files or local/internal IP addresses"
+  internal-tools:
+    command: npx
+    args: ["-y", "internal-mcp-server"]
+    chatMenu: false  # Only available in agent builder
