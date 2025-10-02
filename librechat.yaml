@@ -5,45 +5,69 @@ cache: true
 interface:
   # MCP Servers UI configuration
   mcpServers:
-  zapier_gmail:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Mail"
-  zapier_gdrive:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Drive"
-  zapier_gcalendar:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Calendar"
-  zapier_gtask:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Google Tasks"
-  zapier_pushover:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Pushover"
-  zapier_github:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "GitHub"
-  zapier_notion:
-    type: "streamable-http"
-    url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    timeout: 60000
-    title: "Notion"
-
+   zapier_gmail:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "Google Mail"
+   zapier_gdrive:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "Google Drive"
+   zapier_gcalendar:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "Google Calendar"
+   zapier_gtask:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "Google Tasks"
+   zapier_pushover:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "Pushover"
+   zapier_github:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "GitHub"
+   zapier_notion:
+     type: "streamable-http"
+     url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+     timeout: 60000
+     title: "Notion"
+    
+vectorDb:
+  provider: "meilisearch"
+  meilisearch:
+    url: ${MEILI_URL}          # e.g. http://localhost:7700 or Railway endpoint
+    apiKey: ${MEILI_MASTER_KEY}
+    indexName: "librechat"     # choose any index name
+    embedModel: "text-embedding-3-small"  # or "text-embedding-3-large"
+    batchSize: 100
+    timeout: 60
 registration:
   socialLogins: ["discord", "facebook", "github", "google", "openid"]
- 
+ server:
+  host: 0.0.0.0
+  port: 3080
+
+security:
+  accessCode: solstice   # optional, can be removed if not needed
+
+providers:
+  openai:
+    apiKey: ${OPENAI_API_KEY}
+  google:
+    apiKey: ${GOOGLE_API_KEY}
+  perplexity:
+    apiKey: ${PERPLEXITY_API_KEY}
+
+    
 endpoints:
   custom:
  
