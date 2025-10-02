@@ -2,50 +2,6 @@ version: 1.2.8
 cache: true
 
 # ========================
-# Server & Security
-# ========================
-server:
-  host: 0.0.0.0
-  port: 3080
-
-security:
-  accessCode: "solstice"
-
-# ========================
-# Providers
-# ========================
-providers:
-  openai:
-    apiKey: "${OPENAI_API_KEY}"
-  google:
-    apiKey: "${GOOGLE_API_KEY}"
-  perplexity:
-    apiKey: "${PERPLEXITY_API_KEY}"
-  brave:
-    apiKey: "${BRAVE_API_KEY}"
-    baseURL: "https://api.search.brave.com/res/v1"
-
-# ========================
-# Features
-# ========================
-features:
-  websearch: true
-  calculator: true
-
-# ========================
-# Vector DB
-# ========================
-vectorDb:
-  provider: "meilisearch"
-  meilisearch:
-    url: "${MEILI_URL}"
-    apiKey: "${MEILI_MASTER_KEY}"
-    indexName: "librechat"
-    embedModel: "text-embedding-3-small"
-    batchSize: 100
-    timeout: 60
-
-# ========================
 # Endpoints
 # ========================
 endpoints:
@@ -96,3 +52,64 @@ webSearch:
 # ========================
 balance:
   check: true
+
+# ========================
+# Interface (MCP + Assistants + Features)
+# ========================
+interface:
+  mcpServers:
+    zapier_gmail:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "Google Mail"
+    zapier_gdrive:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "Google Drive"
+    zapier_gcalendar:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "Google Calendar"
+    zapier_gtask:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "Google Tasks"
+    zapier_pushover:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "Pushover"
+    zapier_github:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "GitHub"
+    zapier_notion:
+      type: "streamable-http"
+      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      timeout: 60000
+      title: "Notion"
+
+  assistants:
+    disableBuilder: false
+    pollIntervalMs: 750
+    timeoutMs: 180000
+    supportedIds: ["asst_supportedAssistantId1"]
+    capabilities: ["code_interpreter", "retrieval", "actions", "tools", "image_vision"]
+    retrievalModels: ["gpt-4-turbo-preview"]
+
+  webSearch: true
+  modelSelect: true
+  parameters: true
+  presets: true
+  sidePanel: true
+  prompts: true
+  bookmarks: true
+  multiConvo: true
+  agents: true
+  fileSearch: true
+  temporaryChatRetention: 4380
