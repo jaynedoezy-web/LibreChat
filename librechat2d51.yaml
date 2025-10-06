@@ -1,5 +1,0 @@
-mcpServers:
-  internal-tools:
-    command: npx
-    args: ["-y", "internal-mcp-server"]
-    chatMenu: false  # Only available in agent builder
