@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  app:
+    depends_on:
+      rag-api:
+        condition: service_started
+    environment:
+      RAG_API_URL: http://rag-api:8000
+
+  rag-api:
+    image: ${RAG_IMAGE:-ghcr.io/librechat-ai/rag-api:latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PINECONE_API_KEY: ${PINECONE_API_KEY}
+      PINECONE_INDEX: ${PINECONE_INDEX}
+      PINECONE_HOST: ${PINECONE_HOST}
+      PINECONE_NAMESPACE: ${PINECONE_NAMESPACE:-librechat}
+      RAG_EMBEDDINGS_MODEL: ${RAG_EMBEDDINGS_MODEL:text-embedding-3-large}
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-1200}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-150}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - rag_data:/app/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "(curl -fsS http://localhost:8000/health || wget -qO- http://localhost:8000/health) >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  rag_data:
+```
