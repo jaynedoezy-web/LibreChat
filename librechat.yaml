@@ -1,0 +1,168 @@
+# LibreChat unified config — Pinecone RAG + Voice + Brave MCP (native web search OFF)
+# Place at repo root as: librechat.yaml
+# NOTE: Keep secrets in environment (.env / Railway variables)
+
+app:
+  title: "LibreChat"
+  auth:
+    allowLogin: ${ALLOW_EMAIL_LOGIN:true}
+    allowRegistration: ${ALLOW_REGISTRATION:false}
+  ui:
+    defaultAgent: "Conversational (Voice)"
+
+features:
+  webSearch:
+    enabled: false           # Brave via MCP only
+  files:
+    enabled: true
+  ocr:
+    enabled: false
+  audio:
+    stt:
+      provider: "openai"
+      model: ${OPENAI_STT_MODEL:whisper-1}
+    tts:
+      provider: "openai"
+      model: ${OPENAI_TTS_MODEL:tts-1}
+      voice: ${OPENAI_TTS_VOICE:alloy}
+
+fileConfig:
+  fileStrategy: "s3"         # Cloudflare R2 (S3‑compatible)
+  s3Config:
+    bucketName: ${R2_BUCKET}
+    region: ${R2_REGION:us-east-1}
+    endpoint: ${R2_ENDPOINT}
+    forcePathStyle: true
+    credentials:
+      accessKeyId: ${R2_ACCESS_KEY_ID}
+      secretAccessKey: ${R2_SECRET_ACCESS_KEY}
+  limits:
+    maxUploadSize: 25
+    acceptedMimeTypes: [
+      "text/plain","text/markdown","application/pdf","text/csv",
+      "application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ]
+
+rag:
+  enabled: true
+  serverUrl: ${RAG_API_URL}
+  models:
+    embedder: ${RAG_EMBEDDINGS_MODEL:text-embedding-3-large}
+    chunker:
+      size: ${RAG_CHUNK_SIZE:1200}
+      overlap: ${RAG_CHUNK_OVERLAP:150}
+  vectorStore:
+    type: "pinecone"
+    apiKey: ${PINECONE_API_KEY}
+    index: ${PINECONE_INDEX}
+    host: ${PINECONE_HOST}
+    namespace: ${PINECONE_NAMESPACE:librechat}
+
+endpoints:
+  openAI:
+    - name: "openai"
+      apiKey: ${OPENAI_API_KEY}
+      models:
+        default: ["gpt-5","gpt-5-mini","gpt-5-nano","gpt-4o"]
+      titleConvo: true
+      titleModel: "gpt-5-nano"
+      summarize: false
+      modelDisplayLabel: "OpenAI"
+
+  google:
+    - name: "google"
+      apiKey: ${GOOGLE_KEY}
+      models:
+        default: ["gemini-2.5-pro","gemini-2.5-flash"]
+      modelDisplayLabel: "Gemini"
+
+  custom:
+    - name: "OpenRouter"
+      apiKey: ${OPENROUTER_API_KEY}
+      baseURL: "https://openrouter.ai/api/v1"
+      models:
+        default: [
+          "deepseek/deepseek-chat-v3.1:free",
+          "qwen/qwen3-coder:free",
+          "gpt-oss:20b",
+          "meta-llama/llama-3.2-1b-instruct:free"
+        ]
+      dropParams: ["user"]
+      modelDisplayLabel: "OpenRouter"
+
+modelSpecs:
+  "gpt-5": { reasoning: true, vision: true, audio: true }
+  "gpt-5-mini": { reasoning: true }
+  "gpt-5-nano": { light: true }
+  "gpt-4o": { vision: true, audio: true }
+  "gemini-2.5-pro": { reasoning: true, vision: true, audio: true }
+  "gemini-2.5-flash": { fast: true, vision: true, audio: true }
+
+mcpServers:
+  brave_search:
+    type: "streamable-http"
+    url: ${BRAVE_MCP_URL}
+    timeout: 60000
+    title: "Brave Search"
+    env:
+      BRAVE_API_KEY: ${BRAVE_API_KEY}
+
+  # Zapier MCP endpoints are fed from .env to keep URLs private
+  zapier_gmail:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_GMAIL}
+    timeout: 60000
+    title: "Google Mail"
+  zapier_gdrive:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_GDRIVE}
+    timeout: 60000
+    title: "Google Drive"
+  zapier_gcalendar:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_GCAL}
+    timeout: 60000
+    title: "Google Calendar"
+  zapier_gtask:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_GTASKS}
+    timeout: 60000
+    title: "Google Tasks"
+  zapier_gsheets:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_GSHEETS}
+    timeout: 60000
+    title: "Google Sheets"
+  zapier_pushover:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_PUSHOVER}
+    timeout: 60000
+    title: "Pushover"
+  zapier_github:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_GITHUB}
+    timeout: 60000
+    title: "GitHub"
+  zapier_notion:
+    type: "streamable-http"
+    url: ${ZAPIER_MCP_NOTION}
+    timeout: 60000
+    title: "Notion"
+
+agents:
+  - name: "Conversational (Voice)"
+    description: "Hands‑free voice assistant. Uses OpenAI for STT/TTS and primary LLM, Pinecone‑backed RAG, and Brave MCP for live info."
+    tools:
+      allow: ["File Handling", "Knowledge", "Brave Search"]
+    mcpServers: ["brave_search"]
+    systemPrompt: |
+      You are a conversational assistant. Listen via STT, respond via TTS. Use Brave Search tools for fresh info. When files have been uploaded or knowledge exists, ground answers via RAG and cite sources.
+
+  - name: "Automations (Zapier)"
+    description: "Automates Gmail, Drive, Calendar, Tasks, Sheets, GitHub, Notion, Pushover via Zapier MCP."
+    tools:
+      allow: ["Google Mail","Google Drive","Google Calendar","Google Tasks","Google Sheets","GitHub","Notion","Pushover"]
+    mcpServers: ["zapier_gmail","zapier_gdrive","zapier_gcalendar","zapier_gtask","zapier_gsheets","zapier_github","zapier_notion","zapier_pushover"]
+    systemPrompt: |
+      You automate workflows via Zapier MCP tools. Confirm actions before executing. Summarize changes succinctly.
