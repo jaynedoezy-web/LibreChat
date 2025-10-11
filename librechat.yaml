@@ -1,35 +1,28 @@
 version: "1.3.0"
 
-# keep this simple; you can wire TTLs later
-cache: ${CACHE_ENABLED}
+cache: true
 
-# auth/UI items live in env; only include YAML keys the validator knows
 endpoints:
   custom:
-    # --- OpenAI ---
     - name: "OpenAI"
       apiKey: ${OPENAI_API_KEY}
       models:
         fetch: true
         default: ["gpt-4o", "gpt-4o-mini"]
       titleConvo: true
-      summarize: false
 
-    # --- Google / Gemini ---
     - name: "Gemini"
       apiKey: ${GEMINI_API_KEY}
       models:
         fetch: true
         default: ["gemini-2.5-pro", "gemini-2.5-flash"]
 
-    # --- Perplexity ---
     - name: "Perplexity"
       apiKey: ${PERPLEXITY_API_KEY}
       baseURL: "https://api.perplexity.ai"
       models:
         default: ["llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online"]
 
-    # --- OpenRouter ---
     - name: "OpenRouter"
       apiKey: ${OPENROUTER_API_KEY}
       baseURL: "https://openrouter.ai/api/v1"
@@ -38,12 +31,9 @@ endpoints:
         default:
           - "deepseek/deepseek-r1-0528:free"
           - "qwen/qwen3-coder:free"
-          - "qwen/qwen3-235b-a22b:free"
           - "meituan/longcat-flash-chat:free"
       modelDisplayLabel: "OpenRouter"
-      titleConvo: true
 
-# Speech lives here in newer configs
 speech:
   stt:
     provider: ${WHISPER_PROVIDER}
@@ -51,7 +41,6 @@ speech:
     provider: ${TTS_PROVIDER}
     voice: ${TTS_VOICE}
 
-# ✅ Correct key is mcpServers (not "mcp")
 mcpServers:
   Zapier_Google_Calendar:
     type: streamable-http
@@ -77,10 +66,3 @@ mcpServers:
   Zapier_Pushover:
     type: streamable-http
     url: ${ZAPIER_MCP_PUSHOVER}
-
-  # Optional Brave MCP (only if you actually run a Brave MCP server)
-  # Brave_Search:
-  #   type: streamable-http
-  #   url: ${BRAVE_MCP_URL}
-  #   headers:
-  #     X-Subscription-Token: ${BRAVE_API_KEY}
