@@ -1,16 +1,49 @@
-##############################################
-# LibreChat Configuration (for Railway deploy)
-##############################################
+version: "1.3.0"
 
-config:
-  cache:
-    enabled: ${CACHE_ENABLED}
-    modelsTTL: ${CACHE_MODELS_TTL}
+# keep this simple; you can wire TTLs later
+cache: ${CACHE_ENABLED}
 
-  authentication:
-    email: ${ALLOW_EMAIL_LOGIN}
-    social: ${ALLOW_SOCIAL_LOGIN}
+# auth/UI items live in env; only include YAML keys the validator knows
+endpoints:
+  custom:
+    # --- OpenAI ---
+    - name: "OpenAI"
+      apiKey: ${OPENAI_API_KEY}
+      models:
+        fetch: true
+        default: ["gpt-4o", "gpt-4o-mini"]
+      titleConvo: true
+      summarize: false
 
+    # --- Google / Gemini ---
+    - name: "Gemini"
+      apiKey: ${GEMINI_API_KEY}
+      models:
+        fetch: true
+        default: ["gemini-2.5-pro", "gemini-2.5-flash"]
+
+    # --- Perplexity ---
+    - name: "Perplexity"
+      apiKey: ${PERPLEXITY_API_KEY}
+      baseURL: "https://api.perplexity.ai"
+      models:
+        default: ["llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online"]
+
+    # --- OpenRouter ---
+    - name: "OpenRouter"
+      apiKey: ${OPENROUTER_API_KEY}
+      baseURL: "https://openrouter.ai/api/v1"
+      models:
+        fetch: true
+        default:
+          - "deepseek/deepseek-r1-0528:free"
+          - "qwen/qwen3-coder:free"
+          - "qwen/qwen3-235b-a22b:free"
+          - "meituan/longcat-flash-chat:free"
+      modelDisplayLabel: "OpenRouter"
+      titleConvo: true
+
+# Speech lives here in newer configs
 speech:
   stt:
     provider: ${WHISPER_PROVIDER}
@@ -18,76 +51,36 @@ speech:
     provider: ${TTS_PROVIDER}
     voice: ${TTS_VOICE}
 
-endpoints:
-  # --- OpenAI ---
-  - name: "OpenAI"
-    apiKey: ${OPENAI_API_KEY}
-    models:
-      fetch: true
-      default: ["gpt-5-mini", "gpt-5-nano", "gpt-5", "gpt-4o"]
-    titleConvo: true
-    summarize: false
+# ✅ Correct key is mcpServers (not "mcp")
+mcpServers:
+  Zapier_Google_Calendar:
+    type: streamable-http
+    url: ${ZAPIER_MCP_GCAL}
+  Zapier_Google_Drive:
+    type: streamable-http
+    url: ${ZAPIER_MCP_GDRIVE}
+  Zapier_GitHub:
+    type: streamable-http
+    url: ${ZAPIER_MCP_GITHUB}
+  Zapier_Gmail:
+    type: streamable-http
+    url: ${ZAPIER_MCP_GMAIL}
+  Zapier_Google_Sheets:
+    type: streamable-http
+    url: ${ZAPIER_MCP_GSHEETS}
+  Zapier_Google_Tasks:
+    type: streamable-http
+    url: ${ZAPIER_MCP_GTASKS}
+  Zapier_Notion:
+    type: streamable-http
+    url: ${ZAPIER_MCP_NOTION}
+  Zapier_Pushover:
+    type: streamable-http
+    url: ${ZAPIER_MCP_PUSHOVER}
 
-  # --- Google / Gemini ---
-  - name: "Gemini"
-    apiKey: ${GEMINI_API_KEY}
-    models:
-      fetch: true
-      default: ["gemini-2.5-pro", "gemini-2.5-flash"]
-
-  # --- Perplexity ---
-  - name: "Perplexity"
-    apiKey: ${PERPLEXITY_API_KEY}
-    baseURL: "https://api.perplexity.ai"
-    models:
-      default: ["llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online"]
-
-  # --- OpenRouter ---
-  - name: "OpenRouter"
-    apiKey: ${OPENROUTER_API_KEY}
-    baseURL: "https://openrouter.ai/api/v1"
-    models:
-      fetch: true
-      default:
-        - "deepseek/deepseek-chat-v3.1:free"
-        - "deepseek/deepseek-r1-0528:free"
-        - "qwen/qwen3-coder:free"
-        - "qwen/qwen3-235b-a22b:free"
-        - "meituan/longcat-flash-chat:free"
-    modelDisplayLabel: "OpenRouter"
-    titleConvo: true
-
-mcp:
-  servers:
-    # --- Zapier MCP Integrations ---
-    - name: "Zapier: Google Calendar"
-      transport: "http"
-      url: ${ZAPIER_MCP_GCAL}
-    - name: "Zapier: Google Drive"
-      transport: "http"
-      url: ${ZAPIER_MCP_GDRIVE}
-    - name: "Zapier: GitHub"
-      transport: "http"
-      url: ${ZAPIER_MCP_GITHUB}
-    - name: "Zapier: Gmail"
-      transport: "http"
-      url: ${ZAPIER_MCP_GMAIL}
-    - name: "Zapier: Google Sheets"
-      transport: "http"
-      url: ${ZAPIER_MCP_GSHEETS}
-    - name: "Zapier: Google Tasks"
-      transport: "http"
-      url: ${ZAPIER_MCP_GTASKS}
-    - name: "Zapier: Notion"
-      transport: "http"
-      url: ${ZAPIER_MCP_NOTION}
-    - name: "Zapier: Pushover"
-      transport: "http"
-      url: ${ZAPIER_MCP_PUSHOVER}
-
-    # --- Brave Search MCP (optional external) ---
-    - name: "Brave Search"
-      transport: "http"
-      url: ${BRAVE_GUARDIAN_SEARCH_URL}
-      headers:
-        X-Subscription-Token: ${BRAVE_API_KEY}
+  # Optional Brave MCP (only if you actually run a Brave MCP server)
+  # Brave_Search:
+  #   type: streamable-http
+  #   url: ${BRAVE_MCP_URL}
+  #   headers:
+  #     X-Subscription-Token: ${BRAVE_API_KEY}
