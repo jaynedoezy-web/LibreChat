@@ -1,79 +1,93 @@
-# librechat.yaml — minimal, self-hosted, Railway-friendly
+##############################################
+# LibreChat Configuration (for Railway deploy)
+##############################################
 
 config:
-  # Keep model lists snappy without re-fetching every time
   cache:
-    enabled: true
-    # optional: TTLs (seconds). If omitted, defaults apply.
-    # modelsTTL: 3600
+    enabled: ${CACHE_ENABLED}
+    modelsTTL: ${CACHE_MODELS_TTL}
 
-  # Tighten UI + auth affordances from the front-end side
   authentication:
-    email: true
-    social: false
+    email: ${ALLOW_EMAIL_LOGIN}
+    social: ${ALLOW_SOCIAL_LOGIN}
 
 speech:
   stt:
-    provider: "openai"
-    # model left to default server-side Whisper
+    provider: ${WHISPER_PROVIDER}
   tts:
-    provider: "openai"
-    voice: "alloy"   # change to "sage" if your OpenAI account exposes it
+    provider: ${TTS_PROVIDER}
+    voice: ${TTS_VOICE}
 
 endpoints:
   # --- OpenAI ---
-  - name: "openAI"
-    apiKey: "user_provided"
+  - name: "OpenAI"
+    apiKey: ${OPENAI_API_KEY}
     models:
       fetch: true
-      # Specify a few you like as defaults; users can switch
-      default: ["gpt-4o", "gpt-4o-mini", "o4-mini"]
+      default: ["gpt-5-mini", "gpt-5-nano", "gpt-5", "gpt-4o"]
     titleConvo: true
     summarize: false
 
   # --- Google / Gemini ---
-  - name: "google"
-    apiKey: "user_provided"
+  - name: "Gemini"
+    apiKey: ${GEMINI_API_KEY}
     models:
       fetch: true
       default: ["gemini-2.5-pro", "gemini-2.5-flash"]
 
   # --- Perplexity ---
-  - name: "perplexity"
-    apiKey: "user_provided"
+  - name: "Perplexity"
+    apiKey: ${PERPLEXITY_API_KEY}
     baseURL: "https://api.perplexity.ai"
     models:
-      # Perplexity doesn’t always expose a fetch list; define go-tos
       default: ["llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online"]
 
-  # --- OpenRouter (primary for OSS/free models) ---
+  # --- OpenRouter ---
   - name: "OpenRouter"
-    apiKey: "user_provided"
+    apiKey: ${OPENROUTER_API_KEY}
     baseURL: "https://openrouter.ai/api/v1"
     models:
-      fetch: true         # pull the latest catalog from OpenRouter
+      fetch: true
       default:
-        - "openai/gpt-4o-mini"
-        - "openai/gpt-4o"
-        - "google/gemini-2.5-pro"
-        - "deepseek/deepseek-r1"
-        - "nousresearch/hermes-3-llama-3.1-8b"
+        - "deepseek/deepseek-chat-v3.1:free"
+        - "deepseek/deepseek-r1-0528:free"
+        - "qwen/qwen3-coder:free"
+        - "qwen/qwen3-235b-a22b:free"
+        - "meituan/longcat-flash-chat:free"
     modelDisplayLabel: "OpenRouter"
     titleConvo: true
 
-# Attach Brave search via MCP (recommended), plus Zapier actions
 mcp:
   servers:
+    # --- Zapier MCP Integrations ---
     - name: "Zapier: Google Calendar"
       transport: "http"
-      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    - name: "Zapier: Gmail"
-      transport: "http"
-      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
+      url: ${ZAPIER_MCP_GCAL}
     - name: "Zapier: Google Drive"
       transport: "http"
-      url: "https://mcp.zapier.com/api/mcp/s/.../mcp"
-    # Brave Search MCP (self-host or hosted)
-    - name: "Brave Search MCP"
+      url: ${ZAPIER_MCP_GDRIVE}
+    - name: "Zapier: GitHub"
       transport: "http"
-      url: "https://<your-brave-mcp-endpoint>"
+      url: ${ZAPIER_MCP_GITHUB}
+    - name: "Zapier: Gmail"
+      transport: "http"
+      url: ${ZAPIER_MCP_GMAIL}
+    - name: "Zapier: Google Sheets"
+      transport: "http"
+      url: ${ZAPIER_MCP_GSHEETS}
+    - name: "Zapier: Google Tasks"
+      transport: "http"
+      url: ${ZAPIER_MCP_GTASKS}
+    - name: "Zapier: Notion"
+      transport: "http"
+      url: ${ZAPIER_MCP_NOTION}
+    - name: "Zapier: Pushover"
+      transport: "http"
+      url: ${ZAPIER_MCP_PUSHOVER}
+
+    # --- Brave Search MCP (optional external) ---
+    - name: "Brave Search"
+      transport: "http"
+      url: ${BRAVE_GUARDIAN_SEARCH_URL}
+      headers:
+        X-Subscription-Token: ${BRAVE_API_KEY}
