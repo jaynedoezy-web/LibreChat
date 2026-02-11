@@ -18,6 +18,8 @@ jest.mock('~/server/services/Config', () => ({
 jest.mock('@librechat/api', () => ({
   ...jest.requireActual('@librechat/api'),
   isEnabled: jest.fn(() => false),
+  isEmailDomainAllowed: jest.fn(() => true),
+  findOpenIDUser: jest.requireActual('@librechat/api').findOpenIDUser,
   getBalanceConfig: jest.fn(() => ({
     enabled: false,
   })),
@@ -62,21 +64,36 @@ jest.mock('openid-client', () => {
 });
 
 jest.mock('openid-client/passport', () => {
-  let verifyCallback;
+  /** Store callbacks by strategy name - 'openid' and 'openidAdmin' */
+  const verifyCallbacks = {};
+  let lastVerifyCallback;
+
   const mockStrategy = jest.fn((options, verify) => {
-    verifyCallback = verify;
+    lastVerifyCallback = verify;
     return { name: 'openid', options, verify };
   });
 
   return {
     Strategy: mockStrategy,
-    __getVerifyCallback: () => verifyCallback,
+    /** Get the last registered callback (for backward compatibility) */
+    __getVerifyCallback: () => lastVerifyCallback,
+    /** Store callback by name when passport.use is called */
+    __setVerifyCallback: (name, callback) => {
+      verifyCallbacks[name] = callback;
+    },
+    /** Get callback by strategy name */
+    __getVerifyCallbackByName: (name) => verifyCallbacks[name],
   };
 });
 
-// Mock passport
+// Mock passport - capture strategy name and callback
 jest.mock('passport', () => ({
-  use: jest.fn(),
+  use: jest.fn((name, strategy) => {
+    const passportMock = require('openid-client/passport');
+    if (strategy && strategy.verify) {
+      passportMock.__setVerifyCallback(name, strategy.verify);
+    }
+  }),
 }));
 
 describe('setupOpenId', () => {
@@ -157,9 +174,10 @@ describe('setupOpenId', () => {
     };
     fetch.mockResolvedValue(fakeResponse);
 
-    // Call the setup function and capture the verify callback
+    // Call the setup function and capture the verify callback for the regular 'openid' strategy
+    // (not 'openidAdmin' which requires existing users)
     await setupOpenId();
-    verifyCallback = require('openid-client/passport').__getVerifyCallback();
+    verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
   });
 
   it('should create a new user with correct username when preferred_username claim exists', async () => {
@@ -387,7 +405,7 @@ describe('setupOpenId', () => {
     // Arrange
     process.env.OPENID_REQUIRED_ROLE = 'someRole,anotherRole,admin';
     await setupOpenId(); // Re-initialize the strategy
-    verifyCallback = require('openid-client/passport').__getVerifyCallback();
+    verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
     jwtDecode.mockReturnValue({
       roles: ['anotherRole', 'aThirdRole'],
     });
@@ -404,7 +422,7 @@ describe('setupOpenId', () => {
     // Arrange
     process.env.OPENID_REQUIRED_ROLE = 'someRole,anotherRole,admin';
     await setupOpenId(); // Re-initialize the strategy
-    verifyCallback = require('openid-client/passport').__getVerifyCallback();
+    verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
     jwtDecode.mockReturnValue({
       roles: ['aThirdRole', 'aFourthRole'],
     });
@@ -423,7 +441,7 @@ describe('setupOpenId', () => {
     // Arrange
     process.env.OPENID_REQUIRED_ROLE = ' someRole , anotherRole , admin ';
     await setupOpenId(); // Re-initialize the strategy
-    verifyCallback = require('openid-client/passport').__getVerifyCallback();
+    verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
     jwtDecode.mockReturnValue({
       roles: ['someRole'],
     });
@@ -444,6 +462,46 @@ describe('setupOpenId', () => {
     const callOptions = OpenIDStrategy.mock.calls[OpenIDStrategy.mock.calls.length - 1][0];
     expect(callOptions.usePKCE).toBe(false);
     expect(callOptions.params?.code_challenge_method).toBeUndefined();
+  });
+
+  it('should attach federatedTokens to user object for token propagation', async () => {
+    // Arrange - setup tokenset with access token, refresh token, and expiration
+    const tokensetWithTokens = {
+      ...tokenset,
+      access_token: 'mock_access_token_abc123',
+      refresh_token: 'mock_refresh_token_xyz789',
+      expires_at: 1234567890,
+    };
+
+    // Act - validate with the tokenset containing tokens
+    const { user } = await validate(tokensetWithTokens);
+
+    // Assert - verify federatedTokens object is attached with correct values
+    expect(user.federatedTokens).toBeDefined();
+    expect(user.federatedTokens).toEqual({
+      access_token: 'mock_access_token_abc123',
+      refresh_token: 'mock_refresh_token_xyz789',
+      expires_at: 1234567890,
+    });
+  });
+
+  it('should include tokenset along with federatedTokens', async () => {
+    // Arrange
+    const tokensetWithTokens = {
+      ...tokenset,
+      access_token: 'test_access_token',
+      refresh_token: 'test_refresh_token',
+      expires_at: 9999999999,
+    };
+
+    // Act
+    const { user } = await validate(tokensetWithTokens);
+
+    // Assert - both tokenset and federatedTokens should be present
+    expect(user.tokenset).toBeDefined();
+    expect(user.federatedTokens).toBeDefined();
+    expect(user.tokenset.access_token).toBe('test_access_token');
+    expect(user.federatedTokens.access_token).toBe('test_access_token');
   });
 
   it('should set role to "ADMIN" if OPENID_ADMIN_ROLE is set and user has that role', async () => {
@@ -518,7 +576,7 @@ describe('setupOpenId', () => {
     delete process.env.OPENID_ADMIN_ROLE_TOKEN_KIND;
 
     await setupOpenId();
-    verifyCallback = require('openid-client/passport').__getVerifyCallback();
+    verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
     // Simulate an existing admin user
     const existingAdminUser = {
@@ -569,7 +627,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -592,7 +650,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -613,14 +671,12 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user, details } = await validate(tokenset);
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "Key 'resource_access.nonexistent.roles' not found or invalid type in id token!",
-        ),
+        expect.stringContaining("Key 'resource_access.nonexistent.roles' not found in id token!"),
       );
       expect(user).toBe(false);
       expect(details.message).toContain('role to log in');
@@ -638,12 +694,12 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Key 'org.team.roles' not found or invalid type in id token!"),
+        expect.stringContaining("Key 'org.team.roles' not found in id token!"),
       );
       expect(user).toBe(false);
     });
@@ -667,7 +723,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -697,7 +753,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate({
         ...tokenset,
@@ -717,7 +773,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -734,7 +790,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -751,7 +807,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -768,7 +824,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -785,7 +841,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -805,7 +861,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
@@ -822,12 +878,12 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Key 'access.roles' not found or invalid type in id token!"),
+        expect.stringContaining("Key 'access.roles' not found in id token!"),
       );
       expect(user).toBe(false);
     });
@@ -842,12 +898,12 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Key 'data.roles' not found or invalid type in id token!"),
+        expect.stringContaining("Key 'data.roles' not found in id token!"),
       );
       expect(user).toBe(false);
     });
@@ -864,7 +920,7 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       await expect(validate(tokenset)).rejects.toThrow('Invalid admin role token kind');
 
@@ -885,12 +941,12 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user, details } = await validate(tokenset);
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Key 'roles' not found or invalid type in id token!"),
+        expect.stringContaining("Key 'roles' not found in id token!"),
       );
       expect(user).toBe(false);
       expect(details.message).toContain('role to log in');
@@ -906,12 +962,12 @@ describe('setupOpenId', () => {
       });
 
       await setupOpenId();
-      verifyCallback = require('openid-client/passport').__getVerifyCallback();
+      verifyCallback = require('openid-client/passport').__getVerifyCallbackByName('openid');
 
       const { user } = await validate(tokenset);
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Key 'roleCount' not found or invalid type in id token!"),
+        expect.stringContaining("Key 'roleCount' not found in id token!"),
       );
       expect(user).toBe(false);
     });
