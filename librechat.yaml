@@ -200,7 +200,7 @@ actions:
     - 'swapi.dev'
     - 'librechat.ai'
     - 'google.com'
-    - '*.halfred.app'
+    - '*halfred.app'
     # - 'http://10.225.26.25:7894'  # Internal IP with protocol/port (uncomment if needed)
 
 # MCP Server domain restrictions for remote transports (SSE, WebSocket, HTTP)
@@ -327,22 +327,6 @@ endpoints:
       summaryModel: 'current_model'
       modelDisplayLabel: 'WinOllama'
 
-#    # Groq Example
- #   - name: 'groq'
-#      apiKey: '${GROQ_API_KEY}'
-#      baseURL: 'https://api.groq.com/openai/v1/'
-#      models:
- #       default:
- #         - 'llama3-70b-8192'
- #         - 'llama3-8b-8192'
- #         - 'llama2-70b-4096'
- #         - 'mixtral-8x7b-32768'
- ##         - 'gemma-7b-it'
-  #      fetch: false
- #     titleConvo: true
- #     titleModel: 'mixtral-8x7b-32768'
- #     modelDisplayLabel: 'groq'
-
     # Mistral AI Example
     - name: 'Mistral' # Unique name for the endpoint
       # For `apiKey` and `baseURL`, you can use environment variables that you define.
@@ -385,22 +369,35 @@ endpoints:
       # NOTE: For Mistral, it is necessary to drop the following parameters or you will encounter a 422 Error:
       dropParams: ['stop', 'user', 'frequency_penalty', 'presence_penalty']
 
-    # OpenRouter Example
+    # OpenRouter - Free Models Only
+    # fetch: true pulls ALL models; LibreChat has no filter option.
+    # Using fetch: false with curated free model list instead.
     - name: 'OpenRouter'
-      # For `apiKey` and `baseURL`, you can use environment variables that you define.
-      # recommended environment variables:
       apiKey: '${OPENROUTER_KEY}'
       baseURL: 'https://openrouter.ai/api/v1'
       headers:
         x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
       models:
-        default: ['meta-llama/llama-3-70b-instruct']
-        fetch: true
+        default:
+          - 'openrouter/free'
+          - 'google/gemini-2.5-flash-preview-05-20:free'
+          - 'deepseek/deepseek-r1:free'
+          - 'deepseek/deepseek-chat-v3-0324:free'
+          - 'meta-llama/llama-4-maverick:free'
+          - 'meta-llama/llama-4-scout:free'
+          - 'qwen/qwen3-235b-a22b:free'
+          - 'qwen/qwen3-coder-480b:free'
+          - 'qwen/qwen2.5-vl-72b-instruct:free'
+          - 'mistralai/mistral-small-3.1-24b-instruct:free'
+          - 'nvidia/llama-3.1-nemotron-nano-8b-v1:free'
+          - 'nousresearch/deephermes-3-llama-3-8b-preview:free'
+          - 'google/gemma-3-27b-it:free'
+          - 'moonshotai/kimi-vl-a3b-thinking:free'
+        fetch: false
       titleConvo: true
-      titleModel: 'meta-llama/llama-3-70b-instruct'
-      # Recommended: Drop the stop parameter from the request as Openrouter models use a variety of stop tokens.
+      titleModel: 'openrouter/free'
       dropParams: ['stop']
-      modelDisplayLabel: 'OpenRouter'
+      modelDisplayLabel: 'OpenRouter Free'
 
     # Helicone Example
     - name: 'Helicone'
@@ -564,20 +561,12 @@ endpoints:
 # # See the Custom Configuration Guide for more information on Assistants Config:
 # # https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/assistants_endpoint
 
-# Web Search Configuration (optional)
-# webSearch:
-#   # Jina Reranking Configuration
-#   jinaApiKey: '${JINA_API_KEY}'  # Your Jina API key
-#   jinaApiUrl: '${JINA_API_URL}'  # Custom Jina API URL (optional, defaults to https://api.jina.ai/v1/rerank)
-#   # Other rerankers
-#   cohereApiKey: '${COHERE_API_KEY}'
-#   # Search providers
-#   serperApiKey: '${SERPER_API_KEY}'
-#   searxngInstanceUrl: '${SEARXNG_INSTANCE_URL}'
-#   searxngApiKey: '${SEARXNG_API_KEY}'
-#   # Content scrapers
-#   firecrawlApiKey: '${FIRECRAWL_API_KEY}'
-#   firecrawlApiUrl: '${FIRECRAWL_API_URL}'
+# Web Search Configuration
+# Serper for chat-level web search; Tavily for Agent tools (set TAVILY_API_KEY in .env)
+webSearch:
+  searchProvider: "serper"
+  serperApiKey: "${SERPER_API_KEY}"
+  safeSearch: 1
 
 # Memory configuration for user memories
 # memory:
