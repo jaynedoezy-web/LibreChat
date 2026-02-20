@@ -200,7 +200,7 @@ actions:
     - 'swapi.dev'
     - 'librechat.ai'
     - 'google.com'
-    - '*halfred.app'
+    - '*.halfred.app'
     # - 'http://10.225.26.25:7894'  # Internal IP with protocol/port (uncomment if needed)
 
 # MCP Server domain restrictions for remote transports (SSE, WebSocket, HTTP)
@@ -327,21 +327,21 @@ endpoints:
       summaryModel: 'current_model'
       modelDisplayLabel: 'WinOllama'
 
-    # Groq Example
-    - name: 'groq'
-      apiKey: '${GROQ_API_KEY}'
-      baseURL: 'https://api.groq.com/openai/v1/'
-      models:
-        default:
-          - 'llama3-70b-8192'
-          - 'llama3-8b-8192'
-          - 'llama2-70b-4096'
-          - 'mixtral-8x7b-32768'
-          - 'gemma-7b-it'
-        fetch: false
-      titleConvo: true
-      titleModel: 'mixtral-8x7b-32768'
-      modelDisplayLabel: 'groq'
+#    # Groq Example
+ #   - name: 'groq'
+#      apiKey: '${GROQ_API_KEY}'
+#      baseURL: 'https://api.groq.com/openai/v1/'
+#      models:
+ #       default:
+ #         - 'llama3-70b-8192'
+ #         - 'llama3-8b-8192'
+ #         - 'llama2-70b-4096'
+ #         - 'mixtral-8x7b-32768'
+ ##         - 'gemma-7b-it'
+  #      fetch: false
+ #     titleConvo: true
+ #     titleModel: 'mixtral-8x7b-32768'
+ #     modelDisplayLabel: 'groq'
 
     # Mistral AI Example
     - name: 'Mistral' # Unique name for the endpoint
