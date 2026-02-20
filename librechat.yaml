@@ -327,48 +327,6 @@ endpoints:
       summaryModel: 'current_model'
       modelDisplayLabel: 'WinOllama'
 
-    # Mistral AI Example
-    - name: 'Mistral' # Unique name for the endpoint
-      # For `apiKey` and `baseURL`, you can use environment variables that you define.
-      # recommended environment variables:
-      apiKey: '${MISTRAL_API_KEY}'
-      baseURL: 'https://api.mistral.ai/v1'
-
-      # Models configuration
-      models:
-        # List of default models to use. At least one value is required.
-        default: ['mistral-tiny', 'mistral-small', 'mistral-medium']
-        # Fetch option: Set to true to fetch models from API.
-        fetch: true # Defaults to false.
-
-      # Optional configurations
-
-      # Title Conversation setting
-      titleConvo: true # Set to true to enable title conversation
-
-      # Title Method: Choose between "completion" or "functions".
-      # titleMethod: "completion"  # Defaults to "completion" if omitted.
-
-      # Title Model: Specify the model to use for titles.
-      titleModel: 'mistral-tiny' # Defaults to "gpt-3.5-turbo" if omitted.
-
-      # Summarize setting: Set to true to enable summarization.
-      # summarize: false
-
-      # Summary Model: Specify the model to use if summarization is enabled.
-      # summaryModel: "mistral-tiny"  # Defaults to "gpt-3.5-turbo" if omitted.
-
-      # The label displayed for the AI model in messages.
-      modelDisplayLabel: 'Mistral' # Default is "AI" when not set.
-
-      # Add additional parameters to the request. Default params will be overwritten.
-      # addParams:
-      # safe_prompt: true # This field is specific to Mistral AI: https://docs.mistral.ai/api/
-
-      # Drop Default params parameters from the request. See default params in guide linked below.
-      # NOTE: For Mistral, it is necessary to drop the following parameters or you will encounter a 422 Error:
-      dropParams: ['stop', 'user', 'frequency_penalty', 'presence_penalty']
-
     # OpenRouter - Free Models Only
     # fetch: true pulls ALL models; LibreChat has no filter option.
     # Using fetch: false with curated free model list instead.
@@ -379,59 +337,14 @@ endpoints:
         x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
       models:
         default:
-          - 'openrouter/free'
-          - 'google/gemini-2.5-flash-preview-05-20:free'
-          - 'deepseek/deepseek-r1:free'
-          - 'deepseek/deepseek-chat-v3-0324:free'
-          - 'meta-llama/llama-4-maverick:free'
-          - 'meta-llama/llama-4-scout:free'
-          - 'qwen/qwen3-235b-a22b:free'
-          - 'qwen/qwen3-coder-480b:free'
-          - 'qwen/qwen2.5-vl-72b-instruct:free'
-          - 'mistralai/mistral-small-3.1-24b-instruct:free'
-          - 'nvidia/llama-3.1-nemotron-nano-8b-v1:free'
-          - 'nousresearch/deephermes-3-llama-3-8b-preview:free'
-          - 'google/gemma-3-27b-it:free'
-          - 'moonshotai/kimi-vl-a3b-thinking:free'
+          - 'deepseek/deepseek-r1-0528:free'
+          - 'openai/gpt-oss-120b:free'
+          - 'qwen/qwen3-next-80b-a3b-instruct:free'
         fetch: false
       titleConvo: true
-      titleModel: 'openrouter/free'
+      titleModel: 'deepseek/deepseek-r1-0528:free'
       dropParams: ['stop']
       modelDisplayLabel: 'OpenRouter Free'
-
-    # Helicone Example
-    - name: 'Helicone'
-      # For `apiKey` and `baseURL`, you can use environment variables that you define.
-      # recommended environment variables:
-      apiKey: '${HELICONE_KEY}'
-      baseURL: 'https://ai-gateway.helicone.ai'
-      headers:
-        x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
-      models:
-        default:
-          ['gpt-4o-mini', 'claude-4.5-sonnet', 'llama-3.1-8b-instruct', 'gemini-2.5-flash-lite']
-        fetch: true
-      titleConvo: true
-      titleModel: 'gpt-4o-mini'
-      modelDisplayLabel: 'Helicone'
-      iconURL: https://marketing-assets-helicone.s3.us-west-2.amazonaws.com/helicone.png
-
-    # Portkey AI Example
-    - name: 'Portkey'
-      apiKey: 'dummy'
-      baseURL: 'https://api.portkey.ai/v1'
-      headers:
-        x-portkey-api-key: '${PORTKEY_API_KEY}'
-        x-portkey-virtual-key: '${PORTKEY_OPENAI_VIRTUAL_KEY}'
-      models:
-        default: ['gpt-4o-mini', 'gpt-4o', 'chatgpt-4o-latest']
-        fetch: true
-      titleConvo: true
-      titleModel: 'current_model'
-      summarize: false
-      summaryModel: 'current_model'
-      modelDisplayLabel: 'Portkey'
-      iconURL: https://images.crunchbase.com/image/upload/c_pad,f_auto,q_auto:eco,dpr_1/rjqy7ghvjoiu4cd1xjbf
 
   # AWS Bedrock Example
   # Note: Bedrock endpoint is configured via environment variables
