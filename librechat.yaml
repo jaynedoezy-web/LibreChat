@@ -215,9 +215,10 @@ mcpSettings:
 # Halfred MCP Server
 mcpServers:
   halfred:
-    type: sse
+    type: streamable-http
     url: 'https://mcp.halfred.app/mcp'
     timeout: 60000
+    initTimeout: 30000
     headers:
       Authorization: 'Bearer ${MCP_AUTH_TOKEN}'
 
