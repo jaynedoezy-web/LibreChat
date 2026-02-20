@@ -167,10 +167,10 @@ registration:
  speech:
    tts:
      openai:
-       url: ''
+       url: 'https://kokoro.halfred.app/web/v1/audio/speech'
        apiKey: '${TTS_API_KEY}'
-       model: ''
-       voices: ['']
+       model: 'kokoro'
+       voices: ['af_heart', 'af_bella', 'af_nicole', 'af_sarah', 'am_adam', 'am_michael', 'bf_emma', 'bm_george']
 
 #
 #   stt:
@@ -208,41 +208,18 @@ actions:
 # To allow internal targets like host.docker.internal, you MUST explicitly add them to allowedDomains.
 # Supports wildcards: '*.example.com' matches 'api.example.com', 'staging.example.com', etc.
 # Supports protocol/port restrictions: 'https://api.example.com:8443' restricts to specific protocol/port.
-# mcpSettings:
-#   allowedDomains:
-#     - 'host.docker.internal'    # Docker host access (required for Docker setups)
-#     - 'localhost'               # Local development
-#     - '*.example.com'           # Wildcard subdomain
-#     - 'https://secure.api.com'  # Protocol-restricted
-#     - 'http://internal:8080'    # Protocol and port restricted
+mcpSettings:
+  allowedDomains:
+    - '*.halfred.app'
 
-# Example MCP Servers Object Structure
-# mcpServers:
-#   everything:
-#     # type: sse # type can optionally be omitted
-#     url: http://localhost:3001/sse
-#     timeout: 60000  # 1 minute timeout for this server, this is the default timeout for MCP servers.
-#   puppeteer:
-#     type: stdio
-#     command: npx
-#     args:
-#       - -y
-#       - "@modelcontextprotocol/server-puppeteer"
-#     timeout: 300000  # 5 minutes timeout for this server
-#   filesystem:
-#     # type: stdio
-#     command: npx
-#     args:
-#       - -y
-#       - "@modelcontextprotocol/server-filesystem"
-#       - /home/user/LibreChat/
-#     iconPath: /home/user/LibreChat/client/public/assets/logo.svg
-#   mcp-obsidian:
-#     command: npx
-#     args:
-#       - -y
-#       - "mcp-obsidian"
-#       - /path/to/obsidian/vault
+# Halfred MCP Server
+mcpServers:
+  halfred:
+    type: sse
+    url: 'https://mcp.halfred.app/mcp'
+    timeout: 60000
+    headers:
+      Authorization: 'Bearer ${MCP_AUTH_TOKEN}'
 
 # Definition of custom endpoints
 endpoints:
@@ -337,6 +314,19 @@ endpoints:
   #     #     deploymentName: claude-3-5-haiku@20241022  # Override for this model
 
   custom:
+    # WinOllama - Windows Ollama via halfred.app
+    - name: 'WinOllama'
+      apiKey: 'ollama'
+      baseURL: 'https://winollama.halfred.app/v1/'
+      models:
+        default: ['llama3:latest']
+        fetch: true
+      titleConvo: true
+      titleModel: 'current_model'
+      summarize: false
+      summaryModel: 'current_model'
+      modelDisplayLabel: 'WinOllama'
+
     # Groq Example
     - name: 'groq'
       apiKey: '${GROQ_API_KEY}'
