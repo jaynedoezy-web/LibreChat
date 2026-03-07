@@ -1,23 +1,34 @@
 import z from 'zod';
 import { EModelEndpoint } from 'librechat-data-provider';
+import type { EndpointTokenConfig, TokenConfig } from '~/types';
 
-/** Configuration object mapping model keys to their respective prompt, completion rates, and context limit
+/**
+ * Model Token Configuration Maps
  *
- * Note: the [key: string]: unknown is not in the original JSDoc typedef in /api/typedefs.js, but I've included it since
- * getModelMaxOutputTokens calls getModelTokenValue with a key of 'output', which was not in the original JSDoc typedef,
- * but would be referenced in a TokenConfig in the if(matchedPattern) portion of getModelTokenValue.
- * So in order to preserve functionality for that case and any others which might reference an additional key I'm unaware of,
- * I've included it here until the interface can be typed more tightly.
+ * IMPORTANT: Key Ordering for Pattern Matching
+ * ============================================
+ * The `findMatchingPattern` function iterates through object keys in REVERSE order
+ * (last-defined keys are checked first) and uses `modelName.includes(key)` for matching.
+ *
+ * This means:
+ * 1. BASE PATTERNS must be defined FIRST (e.g., "kimi", "moonshot")
+ * 2. SPECIFIC PATTERNS must be defined AFTER their base patterns (e.g., "kimi-k2", "kimi-k2.5")
+ *
+ * Example ordering for Kimi models:
+ *   kimi: 262144,           // Base pattern - checked last
+ *   'kimi-k2': 262144,      // More specific - checked before "kimi"
+ *   'kimi-k2.5': 262144,    // Most specific - checked first
+ *
+ * Why this matters:
+ * - Model name "kimi-k2.5" contains both "kimi" and "kimi-k2" as substrings
+ * - If "kimi" were checked first, it would incorrectly match "kimi-k2.5"
+ * - By defining specific patterns AFTER base patterns, they're checked first in reverse iteration
+ *
+ * When adding new model families:
+ * 1. Define the base/generic pattern first
+ * 2. Define increasingly specific patterns after
+ * 3. Ensure no pattern is a substring of another that should match differently
  */
-export interface TokenConfig {
-  prompt: number;
-  completion: number;
-  context: number;
-  [key: string]: unknown;
-}
-
-/** An endpoint's config object mapping model keys to their respective prompt, completion rates, and context limit */
-export type EndpointTokenConfig = Record<string, TokenConfig>;
 
 const openAIModels = {
   'o4-mini': 200000,
@@ -38,12 +49,14 @@ const openAIModels = {
   'gpt-4.1-mini': 1047576,
   'gpt-4.1-nano': 1047576,
   'gpt-5': 400000,
+  'gpt-5.1': 400000,
+  'gpt-5.2': 400000,
   'gpt-5-mini': 400000,
   'gpt-5-nano': 400000,
+  'gpt-5-pro': 400000,
   'gpt-4o': 127500, // -500 from max
   'gpt-4o-mini': 127500, // -500 from max
   'gpt-4o-2024-05-13': 127500, // -500 from max
-  'gpt-4o-2024-08-06': 127500, // -500 from max
   'gpt-4-turbo': 127500, // -500 from max
   'gpt-4-vision': 127500, // -500 from max
   'gpt-3.5-turbo': 16375, // -10 from max
@@ -60,9 +73,11 @@ const mistralModels = {
   'mistral-7b': 31990, // -10 from max
   'mistral-small': 31990, // -10 from max
   'mixtral-8x7b': 31990, // -10 from max
+  'mixtral-8x22b': 65536,
   'mistral-large': 131000,
   'mistral-large-2402': 127500,
   'mistral-large-2407': 127500,
+  'mistral-nemo': 131000,
   'pixtral-large': 131000,
   'mistral-saba': 32000,
   codestral: 256000,
@@ -75,6 +90,7 @@ const cohereModels = {
   'command-light-nightly': 8182, // -10 from max
   command: 4086, // -10 from max
   'command-nightly': 8182, // -10 from max
+  'command-text': 4086, // -10 from max
   'command-r': 127500, // -500 from max
   'command-r-plus': 127500, // -500 from max
 };
@@ -88,9 +104,13 @@ const googleModels = {
   gemini: 30720, // -2048 from max
   'gemini-pro-vision': 12288,
   'gemini-exp': 2000000,
+  'gemini-3': 1000000, // 1M input tokens, 64k output tokens
+  'gemini-3-pro-image': 1000000,
+  'gemini-3.1': 1000000, // 1M input tokens, 64k output tokens
   'gemini-2.5': 1000000, // 1M input tokens, 64k output tokens
   'gemini-2.5-pro': 1000000,
   'gemini-2.5-flash': 1000000,
+  'gemini-2.5-flash-image': 1000000,
   'gemini-2.5-flash-lite': 1000000,
   'gemini-2.0': 2000000,
   'gemini-2.0-flash': 1000000,
@@ -127,15 +147,60 @@ const anthropicModels = {
   'claude-3.7-sonnet': 200000,
   'claude-3-5-sonnet-latest': 200000,
   'claude-3.5-sonnet-latest': 200000,
+  'claude-haiku-4-5': 200000,
   'claude-sonnet-4': 1000000,
-  'claude-opus-4': 200000,
+  'claude-sonnet-4-6': 1000000,
   'claude-4': 200000,
+  'claude-opus-4': 200000,
+  'claude-opus-4-5': 200000,
+  'claude-opus-4-6': 1000000,
 };
 
 const deepseekModels = {
-  'deepseek-reasoner': 128000,
   deepseek: 128000,
+  'deepseek-chat': 128000,
+  'deepseek-reasoner': 128000,
+  'deepseek-r1': 128000,
+  'deepseek-v3': 128000,
   'deepseek.r1': 128000,
+};
+
+const moonshotModels = {
+  // Base patterns (check last due to reverse iteration)
+  kimi: 262144,
+  moonshot: 131072,
+  // kimi-k2 series (specific patterns)
+  'kimi-latest': 128000,
+  'kimi-k2': 262144,
+  'kimi-k2.5': 262144,
+  'kimi-k2-turbo': 262144,
+  'kimi-k2-turbo-preview': 262144,
+  'kimi-k2-0905': 262144,
+  'kimi-k2-0905-preview': 262144,
+  'kimi-k2-0711': 131072,
+  'kimi-k2-0711-preview': 131072,
+  'kimi-k2-thinking': 262144,
+  'kimi-k2-thinking-turbo': 262144,
+  // moonshot-v1 series (specific patterns)
+  'moonshot-v1': 131072,
+  'moonshot-v1-auto': 131072,
+  'moonshot-v1-8k': 8192,
+  'moonshot-v1-8k-vision': 8192,
+  'moonshot-v1-8k-vision-preview': 8192,
+  'moonshot-v1-32k': 32768,
+  'moonshot-v1-32k-vision': 32768,
+  'moonshot-v1-32k-vision-preview': 32768,
+  'moonshot-v1-128k': 131072,
+  'moonshot-v1-128k-vision': 131072,
+  'moonshot-v1-128k-vision-preview': 131072,
+  // Bedrock moonshot models
+  'moonshot.kimi': 262144,
+  'moonshot.kimi-k2': 262144,
+  'moonshot.kimi-k2.5': 262144,
+  'moonshot.kimi-k2-thinking': 262144,
+  'moonshot.kimi-k2-0711': 131072,
+  'moonshotai.kimi': 262144,
+  'moonshotai.kimi-k2.5': 262144,
 };
 
 const metaModels = {
@@ -200,36 +265,68 @@ const metaModels = {
   'llama2:70b': 4000,
 };
 
-const ollamaModels = {
+const qwenModels = {
+  qwen: 32000,
   'qwen2.5': 32000,
+  'qwen-turbo': 1000000,
+  'qwen-plus': 131000,
+  'qwen-max': 32000,
+  'qwq-32b': 32000,
+  // Qwen3 models
+  qwen3: 40960, // Qwen3 base pattern (using qwen3-4b context)
+  'qwen3-8b': 128000,
+  'qwen3-14b': 40960,
+  'qwen3-30b-a3b': 40960,
+  'qwen3-32b': 40960,
+  'qwen3-235b-a22b': 40960,
+  // Qwen3 VL (Vision-Language) models
+  'qwen3-vl-8b-thinking': 256000,
+  'qwen3-vl-8b-instruct': 262144,
+  'qwen3-vl-30b-a3b': 262144,
+  'qwen3-vl-235b-a22b': 131072,
+  // Qwen3 specialized models
+  'qwen3-max': 256000,
+  'qwen3-coder': 262144,
+  'qwen3-coder-30b-a3b': 262144,
+  'qwen3-coder-plus': 128000,
+  'qwen3-coder-flash': 128000,
+  'qwen3-next-80b-a3b': 262144,
 };
 
 const ai21Models = {
-  'ai21.j2-mid-v1': 8182, // -10 from max
-  'ai21.j2-ultra-v1': 8182, // -10 from max
-  'ai21.jamba-instruct-v1:0': 255500, // -500 from max
+  'j2-mid': 8182, // -10 from max
+  'j2-ultra': 8182, // -10 from max
+  'jamba-instruct': 255500, // -500 from max
 };
 
 const amazonModels = {
-  'amazon.titan-text-lite-v1': 4000,
-  'amazon.titan-text-express-v1': 8000,
-  'amazon.titan-text-premier-v1:0': 31500, // -500 from max
+  // Amazon Titan models
+  'titan-text-lite': 4000,
+  'titan-text-express': 8000,
+  'titan-text-premier': 31500, // -500 from max
+  // Amazon Nova models
   // https://aws.amazon.com/ai/generative-ai/nova/
-  'amazon.nova-micro-v1:0': 127000, // -1000 from max,
-  'amazon.nova-lite-v1:0': 295000, // -5000 from max,
-  'amazon.nova-pro-v1:0': 295000, // -5000 from max,
-  'amazon.nova-premier-v1:0': 995000, // -5000 from max,
+  'nova-micro': 127000, // -1000 from max
+  'nova-lite': 295000, // -5000 from max
+  'nova-pro': 295000, // -5000 from max
+  'nova-premier': 995000, // -5000 from max
+};
+
+const openAIBedrockModels = {
+  'openai.gpt-oss-20b': 128000,
+  'openai.gpt-oss-120b': 128000,
 };
 
 const bedrockModels = {
   ...anthropicModels,
   ...mistralModels,
   ...cohereModels,
-  ...ollamaModels,
   ...deepseekModels,
+  ...moonshotModels,
   ...metaModels,
   ...ai21Models,
   ...amazonModels,
+  ...openAIBedrockModels,
 };
 
 const xAIModels = {
@@ -247,6 +344,9 @@ const xAIModels = {
   'grok-3-mini': 131072,
   'grok-3-mini-fast': 131072,
   'grok-4': 256000, // 256K context
+  'grok-4-fast': 2000000, // 2M context
+  'grok-4-1-fast': 2000000, // 2M context (covers reasoning & non-reasoning variants)
+  'grok-code-fast': 256000, // 256K context
 };
 
 const aggregateModels = {
@@ -254,11 +354,21 @@ const aggregateModels = {
   ...googleModels,
   ...bedrockModels,
   ...xAIModels,
-  // misc.
-  kimi: 131000,
+  ...qwenModels,
   // GPT-OSS
+  'gpt-oss': 131000,
+  'gpt-oss:20b': 131000,
   'gpt-oss-20b': 131000,
+  'gpt-oss:120b': 131000,
   'gpt-oss-120b': 131000,
+  // GLM models (Zhipu AI)
+  glm4: 128000,
+  'glm-4': 128000,
+  'glm-4-32b': 128000,
+  'glm-4.5': 131000,
+  'glm-4.5-air': 131000,
+  'glm-4.5v': 66000,
+  'glm-4.6': 200000,
 };
 
 export const maxTokensMap = {
@@ -276,8 +386,11 @@ export const modelMaxOutputs = {
   'o1-mini': 65136, // -500 from max: 65,536
   'o1-preview': 32268, // -500 from max: 32,768
   'gpt-5': 128000,
+  'gpt-5.1': 128000,
+  'gpt-5.2': 128000,
   'gpt-5-mini': 128000,
   'gpt-5-nano': 128000,
+  'gpt-5-pro': 128000,
   'gpt-oss-20b': 131000,
   'gpt-oss-120b': 131000,
   system_default: 32000,
@@ -288,19 +401,33 @@ const anthropicMaxOutputs = {
   'claude-3-haiku': 4096,
   'claude-3-sonnet': 4096,
   'claude-3-opus': 4096,
-  'claude-opus-4': 32000,
+  'claude-haiku-4-5': 64000,
   'claude-sonnet-4': 64000,
+  'claude-sonnet-4-6': 64000,
+  'claude-opus-4': 32000,
+  'claude-opus-4-5': 64000,
+  'claude-opus-4-6': 128000,
   'claude-3.5-sonnet': 8192,
   'claude-3-5-sonnet': 8192,
   'claude-3.7-sonnet': 128000,
   'claude-3-7-sonnet': 128000,
 };
 
+/** Outputs from https://api-docs.deepseek.com/quick_start/pricing */
+const deepseekMaxOutputs = {
+  deepseek: 8000, // deepseek-chat default: 4K, max: 8K
+  'deepseek-chat': 8000,
+  'deepseek-reasoner': 64000, // default: 32K, max: 64K
+  'deepseek-r1': 64000,
+  'deepseek-v3': 8000,
+  'deepseek.r1': 64000,
+};
+
 export const maxOutputTokensMap = {
   [EModelEndpoint.anthropic]: anthropicMaxOutputs,
   [EModelEndpoint.azureOpenAI]: modelMaxOutputs,
-  [EModelEndpoint.openAI]: modelMaxOutputs,
-  [EModelEndpoint.custom]: modelMaxOutputs,
+  [EModelEndpoint.openAI]: { ...modelMaxOutputs, ...deepseekMaxOutputs },
+  [EModelEndpoint.custom]: { ...modelMaxOutputs, ...deepseekMaxOutputs },
 };
 
 /**
@@ -314,9 +441,10 @@ export function findMatchingPattern(
   tokensMap: Record<string, number> | EndpointTokenConfig,
 ): string | null {
   const keys = Object.keys(tokensMap);
+  const lowerModelName = modelName.toLowerCase();
   for (let i = keys.length - 1; i >= 0; i--) {
     const modelKey = keys[i];
-    if (modelName.includes(modelKey)) {
+    if (lowerModelName.includes(modelKey)) {
       return modelKey;
     }
   }
