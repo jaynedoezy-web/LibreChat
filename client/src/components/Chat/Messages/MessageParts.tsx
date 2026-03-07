@@ -112,7 +112,14 @@ export default function Message(props: TMessageProps) {
             {!hasParallelContent && (
               <div className="relative flex flex-shrink-0 flex-col items-center">
                 <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full pt-0.5">
-                  <MessageIcon iconData={iconData} assistant={assistant} agent={agent} />
+                  <MessageIcon
+                    iconData={iconData}
+                    assistant={assistant}
+                    agent={agent}
+                    isActive={
+                      isSubmitting && messageId === latestMessage?.messageId && !isCreatedByUser
+                    }
+                  />
                 </div>
               </div>
             )}

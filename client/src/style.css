@@ -2826,6 +2826,85 @@ html {
   animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+@keyframes agentAvatarPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 0 rgba(59, 130, 246, 0.22),
+      inset 0 0 0 0 rgba(59, 130, 246, 0.22);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow:
+      0 0 0 3px rgba(59, 130, 246, 0.26),
+      inset 0 0 0 2px rgba(59, 130, 246, 0.7);
+  }
+}
+
+.agent-avatar-active {
+  animation: agentAvatarPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes agentAvatarBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 0 rgba(59, 130, 246, 0.08),
+      inset 0 0 0 0 rgba(59, 130, 246, 0.08);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow:
+      0 0 0 2px rgba(59, 130, 246, 0.14),
+      inset 0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+}
+
+@keyframes agentAvatarBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes agentAvatarShimmer {
+  0%,
+  100% {
+    filter: saturate(1) brightness(1);
+  }
+  50% {
+    filter: saturate(1.16) brightness(1.1);
+  }
+}
+
+.agent-avatar-trait-breathe {
+  animation: agentAvatarBreathe 3.4s ease-in-out infinite;
+}
+
+.agent-avatar-trait-bob {
+  animation: agentAvatarBob 2.8s ease-in-out infinite;
+}
+
+.agent-avatar-trait-shimmer {
+  animation: agentAvatarShimmer 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-avatar-active {
+    animation: none;
+  }
+  .agent-avatar-trait-breathe,
+  .agent-avatar-trait-bob,
+  .agent-avatar-trait-shimmer {
+    animation: none;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

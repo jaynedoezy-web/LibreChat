@@ -1,21 +1,40 @@
 import React, { useMemo, memo } from 'react';
-import { getEndpointField } from 'librechat-data-provider';
+import { EModelEndpoint, getEndpointField } from 'librechat-data-provider';
 import type { Assistant, Agent } from 'librechat-data-provider';
-import type { TMessageIcon } from '~/common';
+import type { AgentAnimationStyle, TMessageIcon } from '~/common';
 import ConvoIconURL from '~/components/Endpoints/ConvoIconURL';
 import { useGetEndpointsQuery } from '~/data-provider';
 import { getIconEndpoint, logger } from '~/utils';
 import Icon from '~/components/Endpoints/Icon';
+
+const agentAnimationStyles: AgentAnimationStyle[] = ['breathe', 'bob', 'shimmer'];
+const AGENT_MODEL_PREFIX = 'agent_';
+
+function getStyleFromSeed(seed?: string): AgentAnimationStyle | undefined {
+  if (!seed) {
+    return undefined;
+  }
+
+  let hash = 0;
+
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+
+  return agentAnimationStyles[hash % agentAnimationStyles.length];
+}
 
 const MessageIcon = memo(
   ({
     iconData,
     assistant,
     agent,
+    isActive = false,
   }: {
     iconData?: TMessageIcon;
     assistant?: Assistant;
     agent?: Agent;
+    isActive?: boolean;
   }) => {
     logger.log('icon_data', iconData, assistant, agent);
     const { data: endpointsConfig } = useGetEndpointsQuery();
@@ -46,10 +65,34 @@ const MessageIcon = memo(
       [endpointsConfig, endpoint],
     );
 
+    const isAgentMessage = useMemo(() => {
+      const model = iconData?.model ?? '';
+      return (
+        agent != null ||
+        iconData?.endpoint === EModelEndpoint.agents ||
+        model.startsWith(AGENT_MODEL_PREFIX)
+      );
+    }, [agent, iconData?.endpoint, iconData?.model]);
+
+    const agentAnimationStyle = useMemo(() => {
+      if (!isAgentMessage) {
+        return undefined;
+      }
+      const model = iconData?.model ?? '';
+      const seed = agent
+        ? `${agent.id ?? ''}:${agent.name ?? ''}`
+        : ((model || iconData?.modelLabel) ?? '');
+      return getStyleFromSeed(seed);
+    }, [agent, iconData?.model, iconData?.modelLabel, isAgentMessage]);
+
+    const showActivity = useMemo(() => isActive && isAgentMessage, [isActive, isAgentMessage]);
+
     if (iconData?.isCreatedByUser !== true && iconURL != null && iconURL.includes('http')) {
       return (
         <ConvoIconURL
           iconURL={iconURL}
+          isActive={showActivity}
+          agentAnimationStyle={agentAnimationStyle}
           modelLabel={iconData?.modelLabel}
           context="message"
           assistantAvatar={assistantAvatar}
@@ -66,9 +109,11 @@ const MessageIcon = memo(
         isCreatedByUser={iconData?.isCreatedByUser ?? false}
         endpoint={endpoint}
         iconURL={avatarURL || endpointIconURL}
+        isActive={showActivity}
+        agentAnimationStyle={agentAnimationStyle}
         model={iconData?.model}
         assistantName={assistantName}
-        agentName={agentName}
+        agentName={agentName || (isAgentMessage ? (iconData?.modelLabel ?? '') : '')}
         size={28.8}
       />
     );

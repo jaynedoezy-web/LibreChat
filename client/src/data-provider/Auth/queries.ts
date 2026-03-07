@@ -29,11 +29,12 @@ export const useGraphTokenQuery = (
   config?: UseQueryOptions<any>,
 ): QueryObserverResult<any> => {
   const { scopes, enabled = false } = options;
+  const queryScopes = scopes ?? '';
 
   return useQuery({
-    queryKey: [QueryKeys.graphToken, scopes],
-    queryFn: () => dataService.getGraphApiToken({ scopes }),
-    enabled,
+    queryKey: [QueryKeys.graphToken, queryScopes],
+    queryFn: () => dataService.getGraphApiToken({ scopes: queryScopes }),
+    enabled: enabled && queryScopes.length > 0,
     staleTime: 50 * 60 * 1000, // 50 minutes (tokens expire in 60 minutes)
     retry: 1,
     refetchOnWindowFocus: false,

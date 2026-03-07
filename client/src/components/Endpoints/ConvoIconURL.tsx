@@ -1,10 +1,13 @@
 import { memo, useMemo } from 'react';
-import type { IconMapProps } from '~/common';
+import type { AgentAnimationStyle } from '~/common';
 import { URLIcon } from '~/components/Endpoints/URLIcon';
 import { icons } from '~/hooks/Endpoint/Icons';
+import { cn } from '~/utils';
 
 interface ConvoIconURLProps {
   iconURL?: string;
+  isActive?: boolean;
+  agentAnimationStyle?: AgentAnimationStyle;
   modelLabel?: string | null;
   endpointIconURL?: string;
   assistantName?: string;
@@ -31,6 +34,8 @@ const styleImageMap = {
 
 const ConvoIconURL: React.FC<ConvoIconURLProps> = ({
   iconURL = '',
+  isActive = false,
+  agentAnimationStyle,
   modelLabel = '',
   endpointIconURL,
   assistantAvatar,
@@ -44,12 +49,22 @@ const ConvoIconURL: React.FC<ConvoIconURLProps> = ({
     () => !!(iconURL && (iconURL.includes('http') || iconURL.startsWith('/images/'))),
     [iconURL],
   );
+  const animationClass = useMemo(() => {
+    if (isActive) {
+      return 'agent-avatar-active';
+    }
+    if (!agentAnimationStyle) {
+      return '';
+    }
+    return `agent-avatar-trait-${agentAnimationStyle}`;
+  }, [isActive, agentAnimationStyle]);
+
   if (isURL) {
     return (
       <URLIcon
         iconURL={iconURL}
         altName={modelLabel}
-        className={classMap[context ?? 'default'] ?? classMap.default}
+        className={cn(classMap[context ?? 'default'] ?? classMap.default, animationClass)}
         containerStyle={styleMap[context ?? 'default'] ?? styleMap.default}
         imageStyle={styleImageMap[context ?? 'default'] ?? styleImageMap.default}
       />
@@ -57,7 +72,12 @@ const ConvoIconURL: React.FC<ConvoIconURLProps> = ({
   }
 
   return (
-    <div className="shadow-stroke relative flex h-full items-center justify-center rounded-full bg-white text-black">
+    <div
+      className={cn(
+        'shadow-stroke relative flex h-full items-center justify-center rounded-full bg-white text-black',
+        animationClass,
+      )}
+    >
       {Icon && (
         <Icon
           size={41}

@@ -58,6 +58,11 @@ function getGoogleModelName(model: string | null | undefined) {
 
 const MessageEndpointIcon: React.FC<IconProps> = (props) => {
   const { error, iconURL = '', endpoint, size = 30, model = '', assistantName, agentName } = props;
+  const shouldAnimate = props.isActive === true && !!props.agentAnimationStyle;
+  const agentTraitClass = props.agentAnimationStyle
+    ? `agent-avatar-trait-${props.agentAnimationStyle}`
+    : '';
+  const animationClass = shouldAnimate ? 'agent-avatar-active' : agentTraitClass;
 
   const assistantsIcon = {
     icon: iconURL ? (
@@ -192,6 +197,7 @@ const MessageEndpointIcon: React.FC<IconProps> = (props) => {
       }}
       className={cn(
         'relative flex h-9 w-9 items-center justify-center rounded-sm p-1 text-white',
+        animationClass,
         props.className ?? '',
       )}
     >

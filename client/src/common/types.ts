@@ -101,6 +101,8 @@ export enum IconContext {
   message = 'message',
 }
 
+export type AgentAnimationStyle = 'breathe' | 'bob' | 'shimmer';
+
 export type IconMapProps = {
   className?: string;
   iconURL?: string;
@@ -477,6 +479,8 @@ export type IconProps = Pick<t.TMessage, 'isCreatedByUser' | 'model'> &
     size?: number;
     button?: boolean;
     iconURL?: string;
+    isActive?: boolean;
+    agentAnimationStyle?: AgentAnimationStyle;
     message?: boolean;
     className?: string;
     iconClassName?: string;

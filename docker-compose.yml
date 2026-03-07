@@ -71,4 +71,3 @@ services:
 
 volumes:
   pgdata2:
-    - ./librechat.yaml:/app/librechat.yaml

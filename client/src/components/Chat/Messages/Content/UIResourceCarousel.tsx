@@ -112,7 +112,6 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(({ uiRe
                   resource={{
                     uri: uiResource.uri,
                     mimeType: uiResource.mimeType,
-                    text: uiResource.text,
                   }}
                   onUIAction={async (result) => handleUIAction(result, ask)}
                   htmlProps={{
