@@ -80,11 +80,11 @@ interface:
 
       By using the Website, you acknowledge that you have read these Terms of Service and agree to be bound by them.
 
-  endpointsMenu: true
-  modelSelect: true
-  parameters: true
+  endpointsMenu: false
+  modelSelect: false
+  parameters: false
   sidePanel: true
-  presets: true
+  presets: false
   prompts:
     use: true
     create: true
@@ -200,6 +200,20 @@ rateLimits:
 actions:
   allowedDomains:
     - 'librechat.ai'
+
+mcpSettings:
+  allowedDomains:
+    - 'host.docker.internal'
+    - 'mcp.halfred.app'
+
+mcpServers:
+  halfred:
+    type: streamable-http
+    url: 'http://host.docker.internal:3100/mcp'
+    timeout: 60000
+    initTimeout: 30000
+    headers:
+      Authorization: 'Bearer hal+5dWMXXvPEZdSbiGT2phBXdCAKOMvulGCXUrUyxPAxyhH2vGXoavRrOtSRymzgBU'
     # - 'http://10.225.26.25:7894'  # Internal IP with protocol/port (uncomment if needed)
 
 # MCP Server domain restrictions for remote transports (SSE, WebSocket, HTTP)
@@ -339,6 +353,22 @@ endpoints:
     recursionLimit: 15
     maxRecursionLimit: 25
 
+  openAI:
+    models:
+      - gpt-5.4
+      - gpt-5.4-mini
+
+  anthropic:
+    models:
+      - claude-opus-4-6
+      - claude-sonnet-4-6
+      - claude-haiku-4-5-20251001
+
+  google:
+    models:
+      - gemini-2.5-pro
+      - gemini-2.5-flash
+
   # AWS Bedrock Example
   # Note: Bedrock endpoint is configured via environment variables
   # bedrock:
@@ -368,6 +398,63 @@ endpoints:
   #     # - "disabled": No trace information (default)
   #     # Trace output is logged to application log files for compliance auditing
   #     trace: "enabled"
+modelSpecs:
+  enforce: true
+  defaultSpec: claude-sonnet-4-6
+  list:
+    # OpenAI
+    - name: gpt-5.4
+      label: "GPT-5.4"
+      description: "OpenAI flagship"
+      group: openAI
+      preset:
+        endpoint: openAI
+        model: gpt-5.4
+    - name: gpt-5.4-mini
+      label: "GPT-5.4 Mini"
+      description: "Fast and efficient"
+      group: openAI
+      preset:
+        endpoint: openAI
+        model: gpt-5.4-mini
+    # Anthropic
+    - name: claude-opus-4-6
+      label: "Claude Opus 4.6"
+      description: "Most capable Claude"
+      group: anthropic
+      preset:
+        endpoint: anthropic
+        model: claude-opus-4-6
+    - name: claude-sonnet-4-6
+      label: "Claude Sonnet 4.6"
+      description: "Balanced performance"
+      group: anthropic
+      preset:
+        endpoint: anthropic
+        model: claude-sonnet-4-6
+    - name: claude-haiku-4-5
+      label: "Claude Haiku 4.5"
+      description: "Fastest Claude"
+      group: anthropic
+      preset:
+        endpoint: anthropic
+        model: claude-haiku-4-5-20251001
+    # Google
+    - name: gemini-2.5-pro
+      label: "Gemini 2.5 Pro"
+      description: "Google flagship"
+      group: google
+      preset:
+        endpoint: google
+        model: gemini-2.5-pro
+    - name: gemini-2.5-flash
+      label: "Gemini 2.5 Flash"
+      description: "Fast and efficient"
+      group: google
+      preset:
+        endpoint: google
+        model: gemini-2.5-flash
+
 # Example modelSpecs configuration showing grouping options
 # The 'group' field organizes model specs in the UI selector:
 # - If 'group' matches an endpoint name (e.g., "openAI", "groq"), the spec appears nested under that endpoint
